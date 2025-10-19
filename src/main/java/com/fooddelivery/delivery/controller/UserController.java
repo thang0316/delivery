@@ -18,7 +18,7 @@ import com.fooddelivery.delivery.entity.User;
 import com.fooddelivery.delivery.service.UserService;
 
 @RestController
-@RequestMapping("/users")
+@RequestMapping("/api/users")
 public class UserController {
 	@Autowired
 	private UserService userService;
@@ -29,12 +29,12 @@ public class UserController {
 	}
 	
 	@GetMapping
-	List<User> getUsers(){
+	List<User> getAllUsers(){
 		return userService.getUsers();
 	}
 	
 	@GetMapping("/{userId}")
-	User getUser(@PathVariable("userId") String userId) {
+	User getUserById(@PathVariable("userId") String userId) {
 		return userService.getUser(userId);
 	}
 	
