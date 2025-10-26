@@ -1,19 +1,13 @@
 package com.fooddelivery.delivery.dto.request;
 
-import com.fooddelivery.delivery.entity.User.Role;
-
-import lombok.Data;
-
-@Data
-public class UserCreationRequest {
-    private String username;
+public class UserRequest {
+	private String username;
     private String firstName;
     private String lastName;
     private String email;
     private String password;
     private String phone;
-    private Role role;
-	
+    private Long roleId;
 	public String getUsername() {
 		return username;
 	}
@@ -50,11 +44,12 @@ public class UserCreationRequest {
 	public void setPhone(String phone) {
 		this.phone = phone;
 	}
-	public Role getRole() {
-		return role;
+	public Long getRoleId() {
+		return roleId;
 	}
-	public void setRole(Role role) {
-		this.role = role;
+	public void setRoleId(Long roleId) {
+		this.roleId = roleId;
 	}
-	
+    
+    
 }

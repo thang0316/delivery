@@ -30,18 +30,12 @@ public class User {
     @Column(length = 20)
     private String phone;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Role role;
-
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    public enum Role {
-        CUSTOMER,
-        RESTAURANT_OWNER,
-        ADMIN
-    }
+    @ManyToOne
+    @JoinColumn(name = "role_id", nullable = false)
+    private Role role;
 
     public String getFullName() {
         return this.firstName + " " + this.lastName;
@@ -103,6 +97,14 @@ public class User {
 		this.phone = phone;
 	}
 
+	public LocalDateTime getCreatedAt() {
+		return createdAt;
+	}
+
+	public void setCreatedAt(LocalDateTime createdAt) {
+		this.createdAt = createdAt;
+	}
+
 	public Role getRole() {
 		return role;
 	}
@@ -111,13 +113,7 @@ public class User {
 		this.role = role;
 	}
 
-	public LocalDateTime getCreatedAt() {
-		return createdAt;
-	}
-
-	public void setCreatedAt(LocalDateTime createdAt) {
-		this.createdAt = createdAt;
-	}
+	
     
     
 }
