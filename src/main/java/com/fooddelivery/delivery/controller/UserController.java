@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.fooddelivery.delivery.dto.request.UserCreationRequest;
+import com.fooddelivery.delivery.dto.request.UserRequest;
 import com.fooddelivery.delivery.dto.request.UserUpdateRequest;
 import com.fooddelivery.delivery.entity.User;
 import com.fooddelivery.delivery.service.UserService;
@@ -24,7 +24,7 @@ public class UserController {
 	private UserService userService;
 	
 	@PostMapping
-	User createUser(@RequestBody UserCreationRequest request) {
+	User createUser(@RequestBody UserRequest request) {
 		return userService.createUser(request);
 	}
 	
@@ -34,7 +34,7 @@ public class UserController {
 	}
 	
 	@GetMapping("/{userId}")
-	User getUserById(@PathVariable("userId") String userId) {
+	User getUserById(@PathVariable String userId) {
 		return userService.getUser(userId);
 	}
 	
