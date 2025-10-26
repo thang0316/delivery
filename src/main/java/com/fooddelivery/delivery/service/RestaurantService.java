@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.fooddelivery.delivery.entity.Restaurant;
+import com.fooddelivery.delivery.entity.RoleName;
 import com.fooddelivery.delivery.entity.User;
 import com.fooddelivery.delivery.repository.RestaurantRepository;
 import com.fooddelivery.delivery.repository.UserRepository;
@@ -27,7 +28,7 @@ public class RestaurantService {
         User owner = userRepository.findById(request.getOwner())
             .orElseThrow(() -> new RuntimeException("User không tồn tại"));
 
-        if (owner.getRole() != User.Role.RESTAURANT_OWNER) {
+        if (owner.getRole() == null || owner.getRole().getName() != RoleName.RESTAURANT) {
             throw new RuntimeException("User không có phân quyền RESTAURANT_OWNER");
         }
 
@@ -61,7 +62,7 @@ public class RestaurantService {
         User owner = userRepository.findById(request.getOwner())
             .orElseThrow(() -> new RuntimeException("User không tồn tại"));
 
-        if (owner.getRole() != User.Role.RESTAURANT_OWNER) {
+        if (owner.getRole() == null || owner.getRole().getName() != RoleName.RESTAURANT) {
             throw new RuntimeException("User không có phân quyền RESTAURANT_OWNER");
         }
 
