@@ -19,6 +19,8 @@ public class UserService {
 	private UserRepository userRepository;
 	private RoleRepository roleRepository;
 	
+	
+	//thêm
 	public User createUser(UserRequest  request){
 		User user = new User();
 		user.setUsername(request.getUsername());
@@ -41,10 +43,14 @@ public class UserService {
 				.orElseThrow(() -> new RuntimeException("User not found"));
 	}
 	
+	
+	// danh sách
 	public List<User> getUsers(){
 		return userRepository.findAll();
 	}
 	
+	
+	// cập nhật
 	public User updateUser(String userId, UserUpdateRequest request) {
 		User user = getUser(userId);
 		
@@ -60,6 +66,7 @@ public class UserService {
 		return userRepository.save(user);
 	}
 	
+	//xóa
 	public void deleteUser(String userId) {
 		userRepository.deleteById(userId);
 	}
