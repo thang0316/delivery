@@ -1,11 +1,9 @@
 package com.fooddelivery.delivery.entity;
 
 import jakarta.persistence.*;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 
 @Entity
+@Table(name = "drones")
 public class Drone {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
