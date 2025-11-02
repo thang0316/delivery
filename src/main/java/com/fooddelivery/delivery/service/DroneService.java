@@ -33,8 +33,7 @@ public class DroneService {
         drone.setModel(request.getModel());
         drone.setStatus(request.getStatus());
         drone.setBatteryLevel(request.getBatteryLevel());
-        drone.setLatitude(request.getLatitude());
-        drone.setLongitude(request.getLongitude());
+        
         drone.setRestaurant(restaurant);
 
         return droneRepository.save(drone);
@@ -66,8 +65,7 @@ public class DroneService {
         drone.setModel(request.getModel());
         drone.setStatus(request.getStatus());
         drone.setBatteryLevel(request.getBatteryLevel());
-        drone.setLatitude(request.getLatitude());
-        drone.setLongitude(request.getLongitude());
+        
 
         if (request.getRestaurantId() != null) {
             Restaurant restaurant = restaurantRepository.findById(request.getRestaurantId())
