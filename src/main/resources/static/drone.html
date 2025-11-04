@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Drone - Food Delivery</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body class="bg-dark text-light">
+<div class="d-flex">
+
+    <!-- Sidebar -->
+    <nav id="sidebar" class="bg-secondary p-3">
+        <h4 class="text-center mb-4">🍔 Food Delivery</h4>
+        <ul class="nav flex-column">
+            <li class="nav-item"><a class="nav-link" href="/dashboard.html">📊 Bảng điều khiển</a></li>
+            <li class="nav-item"><a class="nav-link" href="/drone.html">🚁 Drone</a></li>
+            <li class="nav-item"><a class="nav-link" href="/login.html">🚪 Đăng xuất</a></li>
+        </ul>
+    </nav>
+
+    <!-- Main content -->
+    <main class="flex-fill p-4">
+        <h2 class="mb-4">🚁 Quản lý Drone</h2>
+
+        <!-- Form thêm drone -->
+        <div class="card bg-secondary p-3 mb-4">
+            <h5>Thêm Drone mới</h5>
+            <div class="row">
+                <div class="col-md-4">
+                    <input type="text" id="droneId" class="form-control mb-2" placeholder="Mã drone">
+                </div>
+                <div class="col-md-4">
+                    <input type="text" id="status" class="form-control mb-2" placeholder="Trạng thái (ACTIVE, IDLE...)">
+                </div>
+                <div class="col-md-4">
+                    <button class="btn btn-success w-100" onclick="createDrone()">Thêm</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Danh sách drone -->
+        <table class="table table-dark table-striped align-middle">
+            <thead>
+            <tr>
+                <th>Mã Drone</th>
+                <th>Trạng thái</th>
+                <th>Vĩ độ</th>
+                <th>Kinh độ</th>
+                <th>Hành động</th>
+            </tr>
+            </thead>
+            <tbody id="droneTable"></tbody>
+        </table>
+    </main>
+</div>
+
+<script src="/js/drone.js"></script>
+</body>
+</html>

@@ -1,0 +1,66 @@
+/* Đặt font & màu nền */
+body {
+    font-family: "Segoe UI", sans-serif;
+    background-color: #212529;
+    color: white;
+    margin: 0;
+}
+
+/* Sidebar cố định bên trái */
+#sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 240px;
+    height: 100vh;
+    background-color: #343a40;
+    padding: 20px;
+    overflow-y: auto;
+    z-index: 1000;
+}
+
+/* Nội dung chính */
+main {
+    margin-left: 240px;
+    padding: 30px;
+    min-height: 100vh;
+    background-color: #212529;
+    position: relative;
+    z-index: 1;
+}
+
+/* Sidebar link */
+.nav-link {
+    display: block;
+    padding: 10px;
+    color: #ddd;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: background-color 0.2s;
+}
+
+.nav-link:hover {
+    background-color: #495057;
+    color: #fff;
+}
+
+/* Card hiển thị số liệu */
+.card {
+    border: none;
+    border-radius: 12px;
+    text-align: center;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    #sidebar {
+        position: relative;
+        width: 100%;
+        height: auto;
+    }
+    main {
+        margin-left: 0;
+    }
+}
