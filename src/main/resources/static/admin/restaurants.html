@@ -1,0 +1,211 @@
+<h2 class="dashboard-title mb-4 text-warning">🏪 Quản lý Nhà hàng</h2>
+
+<div class="card bg-dark text-light p-3">
+    <!-- Thanh công cụ -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="d-flex align-items-center gap-2">
+            <input id="searchRestaurant" type="text" class="form-control form-control-sm bg-secondary text-white border-0"
+                   placeholder="🔍 Tìm kiếm nhà hàng..." style="width:260px;">
+            <button class="btn btn-outline-warning btn-sm" onclick="loadRestaurants()">🔄 Tải lại</button>
+        </div>
+        <div>
+            <button class="btn btn-success btn-sm" onclick="openAddModal()">➕ Thêm Nhà hàng</button>
+            <span class="text-muted small ms-3" id="totalRestaurant">Đang tải...</span>
+        </div>
+    </div>
+
+    <!-- Bảng dữ liệu -->
+    <table class="table table-dark table-hover align-middle mb-0">
+        <thead class="table-warning text-dark">
+        <tr>
+            <th>#</th>
+            <th>Tên Nhà hàng</th>
+            <th>Chủ sở hữu</th>
+            <th>Địa chỉ</th>
+            <th>SĐT</th>
+            <th>Ngày tham gia</th>
+            <th>Đánh giá ⭐</th>
+            <th>Trạng thái</th>
+            <th class="text-center">Hành động</th>
+        </tr>
+        </thead>
+        <tbody id="restaurantTable">
+        <tr><td colspan="9" class="text-center text-muted">Đang tải dữ liệu...</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<script>
+    const apiBase = window.apiBase || "http://localhost:8080/api";
+
+    // 🔹 Load danh sách nhà hàng
+    async function loadRestaurants() {
+        const tbody = document.getElementById("restaurantTable");
+        const searchValue = document.getElementById("searchRestaurant").value.toLowerCase();
+        tbody.innerHTML = `<tr><td colspan="9" class="text-center text-muted">Đang tải...</td></tr>`;
+
+        try {
+            const res = await fetch(apiBase + "/restaurants");
+            if (!res.ok) throw new Error("Không thể tải dữ liệu!");
+            const data = await res.json();
+
+            const filtered = data.filter(r => r.name?.toLowerCase().includes(searchValue));
+            document.getElementById("totalRestaurant").textContent = `Tổng: ${filtered.length} nhà hàng`;
+
+            if (!filtered.length) {
+                tbody.innerHTML = `<tr><td colspan="9" class="text-center text-muted">Không có dữ liệu</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map((r, i) => `
+        <tr>
+          <td>${i + 1}</td>
+          <td>${r.name || "(Không tên)"}</td>
+          <td>${r.owner?.username || "—"}</td>
+          <td>${r.address || "—"}</td>
+          <td>${r.phone || "—"}</td>
+          <td>${r.createdAt ? new Date(r.createdAt).toLocaleDateString("vi-VN") : "—"}</td>
+          <td>${r.rating?.toFixed(1) || "5.0"}</td>
+          <td><span class="badge ${r.active ? "bg-success" : "bg-secondary"}">${r.active ? "Hoạt động" : "Tạm ngưng"}</span></td>
+          <td class="text-center">
+            <button class="btn btn-sm btn-outline-info" onclick="viewRestaurant('${r.id}')">
+              <i class="bi bi-eye"></i> Xem
+            </button>
+          </td>
+        </tr>`).join("");
+        } catch (err) {
+            console.error(err);
+            tbody.innerHTML = `<tr><td colspan="9" class="text-center text-danger">❌ ${err.message}</td></tr>`;
+        }
+    }
+
+    // 🔸 Tạo modal động
+    function createModal(title, bodyHTML, footerHTML = "") {
+        document.querySelectorAll(".modal-backdrop").forEach(e => e.remove());
+        document.body.classList.remove("modal-open");
+        document.body.style.overflow = "";
+
+        const modal = document.createElement("div");
+        modal.className = "modal fade";
+        modal.innerHTML = `
+      <div class="modal-dialog modal-dialog-centered modal-md">
+        <div class="modal-content bg-dark text-light border-0 shadow">
+          <div class="modal-header border-secondary">
+            <h5 class="modal-title text-warning">${title}</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">${bodyHTML}</div>
+          ${footerHTML ? `<div class="modal-footer border-secondary">${footerHTML}</div>` : ""}
+        </div>
+      </div>
+    `;
+        document.body.appendChild(modal);
+
+        const bsModal = new bootstrap.Modal(modal);
+        bsModal.show();
+        modal.addEventListener("hidden.bs.modal", () => modal.remove());
+        return { modal, bsModal };
+    }
+
+    // 👁️ Xem chi tiết
+    async function viewRestaurant(id) {
+        const { modal } = createModal("🏪 Thông tin Nhà hàng", `<p class='text-muted'>Đang tải...</p>`);
+        try {
+            const res = await fetch(`${apiBase}/restaurants/${id}`);
+            if (!res.ok) throw new Error("Không tìm thấy nhà hàng!");
+            const r = await res.json();
+
+            modal.querySelector(".modal-body").innerHTML = `
+        <div class="row">
+          <div class="col-md-6">
+            <p><strong>Tên nhà hàng:</strong> ${r.name || "—"}</p>
+            <p><strong>Chủ sở hữu:</strong> ${r.owner?.username || "—"}</p>
+            <p><strong>Số điện thoại:</strong> ${r.phone || "—"}</p>
+            <p><strong>Đánh giá:</strong> ${r.rating?.toFixed(1) || "5.0"} ⭐</p>
+          </div>
+          <div class="col-md-6">
+            <p><strong>Địa chỉ:</strong> ${r.address || "—"}</p>
+            <p><strong>Ngày tham gia:</strong> ${r.createdAt ? new Date(r.createdAt).toLocaleDateString("vi-VN") : "—"}</p>
+            <p><strong>Trạng thái:</strong> ${r.active ? "<span class='text-success'>Hoạt động</span>" : "<span class='text-danger'>Tạm ngưng</span>"}</p>
+          </div>
+        </div>`;
+        } catch (err) {
+            modal.querySelector(".modal-body").innerHTML = `<div class="alert alert-danger">${err.message}</div>`;
+        }
+    }
+
+    // ➕ Thêm nhà hàng
+    function openAddModal() {
+        const formHTML = `
+      <form id="addRestaurantForm" class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label text-warning fw-semibold">Tên nhà hàng</label>
+          <input type="text" id="resName" class="form-control bg-secondary text-white border-0" required>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label text-warning fw-semibold">ID chủ sở hữu</label>
+          <input type="text" id="resOwner" class="form-control bg-secondary text-white border-0" required>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label text-warning fw-semibold">Số điện thoại</label>
+          <input type="text" id="resPhone" class="form-control bg-secondary text-white border-0">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label text-warning fw-semibold">Địa chỉ</label>
+          <input type="text" id="resAddress" class="form-control bg-secondary text-white border-0">
+        </div>
+      </form>
+    `;
+        const footer = `
+      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+      <button type="button" class="btn btn-success" onclick="addRestaurant()">Lưu</button>
+    `;
+        createModal("➕ Thêm Nhà hàng mới", formHTML, footer);
+    }
+
+    // 🟢 Submit thêm mới
+    async function addRestaurant() {
+        const name = document.getElementById("resName").value.trim();
+        const ownerId = document.getElementById("resOwner").value.trim();
+        const phone = document.getElementById("resPhone").value.trim();
+        const address = document.getElementById("resAddress").value.trim();
+
+        if (!name || !ownerId) return alert("⚠️ Vui lòng nhập Tên nhà hàng và ID chủ sở hữu!");
+
+        try {
+            const res = await fetch(apiBase + "/restaurants", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    name,
+                    address,
+                    phone,
+                    owner: { id: ownerId },
+                    active: true
+                })
+            });
+            if (!res.ok) throw new Error("Thêm nhà hàng thất bại!");
+            alert("✅ Thêm nhà hàng thành công!");
+            document.querySelectorAll(".modal.show").forEach(m => bootstrap.Modal.getInstance(m).hide());
+            loadRestaurants();
+        } catch (err) {
+            alert("❌ " + err.message);
+        }
+    }
+
+    // 🚀 Khởi chạy
+    loadRestaurants();
+</script>
+
+<style>
+    .modal-backdrop.show {
+        opacity: 0.35 !important;
+        background-color: #000 !important;
+    }
+    .modal-content input::placeholder {
+        color: #bbb;
+    }
+    .table-dark th, .table-dark td {
+        vertical-align: middle;
+    }
+</style>

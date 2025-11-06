@@ -4,22 +4,22 @@
 
 // 🧭 Hàm chuyển đổi hiển thị các section
 function showSection(id) {
-    // 1️⃣ Ẩn toàn bộ section khác
+    // 1️⃣ Ẩn tất cả các section
     document.querySelectorAll("main section").forEach(section => {
-        section.style.display = "none";
+        section.classList.remove("active-section");
     });
 
-    // 2️⃣ Hiện section đang được chọn
-    const selectedSection = document.getElementById(id);
-    if (selectedSection) {
-        selectedSection.style.display = "block";
-        selectedSection.scrollIntoView({ behavior: "smooth", block: "start" });
+    // 2️⃣ Hiện section được chọn
+    const selected = document.getElementById(id);
+    if (selected) {
+        selected.classList.add("active-section");
+        selected.scrollIntoView({ behavior: "smooth", block: "start" });
     } else {
         console.warn(`⚠️ Không tìm thấy section: ${id}`);
         return;
     }
 
-    // 3️⃣ Cập nhật trạng thái active trên sidebar
+    // 3️⃣ Cập nhật trạng thái active trong sidebar
     document.querySelectorAll("#sidebar .nav-link").forEach(link => {
         link.classList.remove("active", "fw-bold", "text-warning");
     });
@@ -31,19 +31,24 @@ function showSection(id) {
         activeLink.classList.add("active", "fw-bold", "text-warning");
     }
 
-    // 4️⃣ Gọi hàm load dữ liệu tương ứng (nếu có)
+    // 4️⃣ Gọi hàm load dữ liệu riêng cho từng section
     try {
         switch (id) {
             case "dashboard":
-                if (typeof loadDashboard === "function") loadDashboard();
+                if (typeof loadCounts === "function") loadCounts();
+                if (typeof loadRevenueChart === "function") loadRevenueChart();
+                if (typeof loadRestaurants === "function") loadRestaurants();
                 break;
 
             case "user":
-                // ✅ Luôn load lại roles và users mỗi lần bấm “Người dùng”
                 setTimeout(() => {
                     if (typeof loadRoles === "function") loadRoles();
                     if (typeof loadUsers === "function") loadUsers();
-                }, 150); // Đợi DOM render dropdown xong rồi mới gọi
+                }, 200);
+                break;
+
+            case "restaurant":
+                if (typeof loadRestaurants === "function") loadRestaurants();
                 break;
 
             case "drone":
@@ -54,16 +59,8 @@ function showSection(id) {
                 if (typeof loadOrders === "function") loadOrders();
                 break;
 
-            case "menu":
-                if (typeof loadMenu === "function") loadMenu();
-                break;
-
             case "payment":
                 if (typeof loadPayments === "function") loadPayments();
-                break;
-
-            case "restaurant":
-                if (typeof loadRestaurants === "function") loadRestaurants();
                 break;
 
             default:
@@ -73,35 +70,37 @@ function showSection(id) {
         console.error(`❌ Lỗi khi load dữ liệu cho ${id}:`, err);
     }
 
-    console.log(`📍 Đã chuyển sang tab: ${id}`);
+    console.log(`📍 Đã chuyển sang section: ${id}`);
 }
 
 // =======================================================
-// 🚀 TỰ ĐỘNG MỞ DASHBOARD KHI VỪA TRUY CẬP TRANG
+// 🚀 Khi trang vừa load xong, hiển thị Dashboard mặc định
 // =======================================================
 document.addEventListener("DOMContentLoaded", () => {
-    showSection("dashboard"); // Mặc định mở trang chính
+    showSection("dashboard");
 });
 
 // =======================================================
-// ✨ CẢI TIẾN GIAO DIỆN: Hiệu ứng ẩn/hiện mượt
+// ✨ Thêm hiệu ứng chuyển section mượt hơn
 // =======================================================
 const style = document.createElement("style");
-style.innerHTML = `
+style.textContent = `
     main section {
         display: none;
         opacity: 0;
         transform: translateY(10px);
-        transition: all 0.3s ease;
+        transition: opacity 0.3s ease, transform 0.3s ease;
     }
-    main section[style*="display: block"] {
+    main section.active-section {
+        display: block;
         opacity: 1;
         transform: translateY(0);
     }
+
     #sidebar .nav-link.active {
-        background-color: #343a40 !important;
-        border-radius: 8px;
+        background-color: #212529 !important;
         color: #ffc107 !important;
+        border-radius: 8px;
     }
 `;
 document.head.appendChild(style);
