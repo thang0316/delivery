@@ -3,6 +3,7 @@ package com.fooddelivery.delivery.service;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.fooddelivery.delivery.dto.request.UserRequest;
@@ -19,13 +20,16 @@ public class UserService {
     private UserRepository userRepository;
 
     @Autowired
-    private RoleRepository roleRepository; // ✅ thêm @Autowired
+    private RoleRepository roleRepository;
+    
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
-    // ➕ Thêm user
+    // Thêm user
     public User createUser(UserRequest request) {
         User user = new User();
         user.setUsername(request.getUsername());
-        user.setPassword(request.getPassword()); // ⚠️ sau này nên mã hóa BCrypt
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setFirstName(request.getFirstName());
         user.setLastName(request.getLastName());
         user.setEmail(request.getEmail());
@@ -38,18 +42,18 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    // 🔍 Lấy user theo ID
+    //  Lấy user theo ID
     public User getUser(String userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
 
-    // 📋 Danh sách user
+    //  Danh sách user
     public List<User> getUsers() {
         return userRepository.findAll();
     }
 
-    // 🔄 Cập nhật user
+    //  Cập nhật user
     public User updateUser(String userId, UserUpdateRequest request) {
         User user = getUser(userId);
 
@@ -65,7 +69,7 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    // ❌ Xóa user
+    //  Xóa user
     public void deleteUser(String userId) {
         userRepository.deleteById(userId);
     }
