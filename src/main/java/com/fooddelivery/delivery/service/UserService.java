@@ -22,8 +22,8 @@ public class UserService {
     @Autowired
     private RoleRepository roleRepository;
     
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    
+    private final PasswordEncoder passwordEncoder = new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder();
 
     // Thêm user
     public User createUser(UserRequest request) {
