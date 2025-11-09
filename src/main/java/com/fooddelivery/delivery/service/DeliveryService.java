@@ -11,7 +11,8 @@ import com.fooddelivery.delivery.repository.*;
 
 @Service
 public class DeliveryService {
-	@Autowired
+
+    @Autowired
     private DeliveryRepository deliveryRepository;
 
     @Autowired
@@ -33,7 +34,6 @@ public class DeliveryService {
         delivery.setDrone(drone);
         delivery.setStartTime(request.getStartTime());
         delivery.setEndTime(request.getEndTime());
-        delivery.setStatus(request.getStatus());
         delivery.setCurrentLatitude(request.getCurrentLatitude());
         delivery.setCurrentLongitude(request.getCurrentLongitude());
 
@@ -54,11 +54,10 @@ public class DeliveryService {
     // Cập nhật thông tin giao hàng
     public Delivery updateDelivery(String id, DeliveryRequest request) {
         Delivery delivery = getDeliveryById(id);
-
-        if (request.getStatus() != null) delivery.setStatus(request.getStatus());
+        delivery.setStartTime(request.getStartTime());
+        delivery.setEndTime(request.getEndTime());
         delivery.setCurrentLatitude(request.getCurrentLatitude());
         delivery.setCurrentLongitude(request.getCurrentLongitude());
-        delivery.setEndTime(request.getEndTime());
 
         return deliveryRepository.save(delivery);
     }

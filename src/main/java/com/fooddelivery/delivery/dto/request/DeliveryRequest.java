@@ -2,15 +2,15 @@ package com.fooddelivery.delivery.dto.request;
 
 import java.time.LocalDateTime;
 
+import com.fooddelivery.delivery.entity.Delivery.DeliveryStatus;
+
 public class DeliveryRequest {
 	private Long orderId;
     private String droneId;
-    private String status;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private double currentLatitude;
     private double currentLongitude;
-    
 	public Long getOrderId() {
 		return orderId;
 	}
@@ -22,12 +22,6 @@ public class DeliveryRequest {
 	}
 	public void setDroneId(String droneId) {
 		this.droneId = droneId;
-	}
-	public String getStatus() {
-		return status;
-	}
-	public void setStatus(String status) {
-		this.status = status;
 	}
 	public LocalDateTime getStartTime() {
 		return startTime;
@@ -53,6 +47,7 @@ public class DeliveryRequest {
 	public void setCurrentLongitude(double currentLongitude) {
 		this.currentLongitude = currentLongitude;
 	}
+    
     
     
 }

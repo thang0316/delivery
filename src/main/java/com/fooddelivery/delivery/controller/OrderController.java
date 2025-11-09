@@ -3,7 +3,9 @@ package com.fooddelivery.delivery.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.fooddelivery.delivery.dto.request.OrderRequest;
 import com.fooddelivery.delivery.entity.Order;
@@ -40,10 +42,13 @@ public class OrderController {
         return orderService.getOrdersByCustomer(userId);
     }
 
-    // Cập nhật trạng thái đơn hàng
     @PutMapping("/{orderId}/status")
-    public Order updateStatus(@PathVariable Long orderId, @RequestParam String status) {
-        return orderService.updateStatus(orderId, status);
+    public Order updateStatus(@PathVariable Long orderId, @RequestParam Order.OrderStatus status) {
+        try {
+            return orderService.updateStatus(orderId, status);
+        } catch (RuntimeException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
     }
 
     // Xóa đơn hàng

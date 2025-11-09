@@ -2,31 +2,31 @@ package com.fooddelivery.delivery.entity;
 
 import java.time.LocalDateTime;
 import java.util.List;
-
 import jakarta.persistence.*;
-
 
 @Entity
 @Table(name = "orders")
 public class Order {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
- // Người đặt hàng
+
+    // Thông tin khách hàng
     private String customerName;
     private String customerPhone;
     private String customerAddress;
-    
- // Tổng tiền
+
+    // Tổng tiền
     private Double totalAmount;
-    
-    
- // Trạng thái đơn hàng: PENDING, CONFIRMED, DELIVERING, COMPLETED, CANCELED
-    private String status;
-    
-    private LocalDateTime createdAt  = LocalDateTime.now();
-    
+
+    // Trạng thái đơn hàng
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private OrderStatus status = OrderStatus.PENDING;
+
+    private LocalDateTime createdAt = LocalDateTime.now();
+
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User customer;
@@ -37,6 +37,15 @@ public class Order {
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> items;
+
+    // Enum trạng thái đơn hàng
+    public enum OrderStatus {
+        PENDING,     // Chưa xác nhận
+        CONFIRMED,   // Đã xác nhận
+        DELIVERING,  // Đang giao
+        COMPLETED,   // Hoàn thành
+        CANCELED     // Hủy
+    }
 
 	public Long getId() {
 		return id;
@@ -78,11 +87,11 @@ public class Order {
 		this.totalAmount = totalAmount;
 	}
 
-	public String getStatus() {
+	public OrderStatus getStatus() {
 		return status;
 	}
 
-	public void setStatus(String status) {
+	public void setStatus(OrderStatus status) {
 		this.status = status;
 	}
 
@@ -117,6 +126,6 @@ public class Order {
 	public void setItems(List<OrderItem> items) {
 		this.items = items;
 	}
-    
+
     
 }

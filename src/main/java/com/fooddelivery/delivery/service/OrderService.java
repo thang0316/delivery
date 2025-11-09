@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import com.fooddelivery.delivery.dto.request.OrderRequest;
 import com.fooddelivery.delivery.entity.MenuItem;
 import com.fooddelivery.delivery.entity.Order;
+import com.fooddelivery.delivery.entity.Order.OrderStatus;
 import com.fooddelivery.delivery.entity.OrderItem;
 import com.fooddelivery.delivery.entity.Restaurant;
 import com.fooddelivery.delivery.entity.User;
@@ -20,7 +21,7 @@ import com.fooddelivery.delivery.repository.UserRepository;
 @Service
 public class OrderService {
 
-	@Autowired
+    @Autowired
     private OrderRepository orderRepository;
 
     @Autowired
@@ -32,8 +33,8 @@ public class OrderService {
     @Autowired
     private MenuItemRepository menuItemRepository;
 
- //  Tạo đơn hàng
-    	public Order createOrder(OrderRequest request) {
+    //  Tạo đơn hàng (mặc định PENDING)
+    public Order createOrder(OrderRequest request) {
         User customer = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng!"));
 
@@ -46,7 +47,7 @@ public class OrderService {
         order.setCustomerName(request.getCustomerName());
         order.setCustomerPhone(request.getCustomerPhone());
         order.setCustomerAddress(request.getCustomerAddress());
-        order.setStatus("ĐANG CHỜ XÁC NHẬN");
+        order.setStatus(OrderStatus.PENDING); // Mặc định chưa xác nhận
 
         double total = 0.0;
 
@@ -83,20 +84,30 @@ public class OrderService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng!"));
     }
 
-    //  Lấy đơn theo người dùng
+    //  Lấy danh sách đơn hàng của 1 khách hàng
     public List<Order> getOrdersByCustomer(String userId) {
-        return orderRepository.findByCustomer_Id(userId);
+        return orderRepository.findByCustomer_IdOrderByCreatedAtDesc(userId);
+    }
+
+    //  Lấy danh sách đơn hàng của nhà hàng
+    public List<Order> getOrdersByRestaurant(String restaurantId) {
+        return orderRepository.findByRestaurant_IdOrderByCreatedAtDesc(restaurantId);
+    }
+
+    //  Lấy đơn hàng theo trạng thái
+    public List<Order> getOrdersByStatus(OrderStatus status) {
+        return orderRepository.findByStatus(status);
     }
 
     //  Cập nhật trạng thái đơn hàng
-    public Order updateStatus(Long orderId, String status) {
+    public Order updateStatus(Long orderId, OrderStatus status) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng cần cập nhật!"));
         order.setStatus(status);
         return orderRepository.save(order);
     }
 
-    //  Xóa đơn
+    //  Xóa đơn hàng
     public void deleteOrder(Long orderId) {
         if (!orderRepository.existsById(orderId)) {
             throw new RuntimeException("Không thể xóa — đơn hàng không tồn tại!");
