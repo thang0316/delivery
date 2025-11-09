@@ -23,9 +23,18 @@ public class Delivery {
 
     private LocalDateTime startTime;   // Thời gian bắt đầu giao
     private LocalDateTime endTime;     // Thời gian kết thúc giao
-    private String status;             // IN_PROGRESS, DELIVERED, FAILED
+    private DeliveryStatus status;     
     private double currentLatitude;    // Vĩ độ hiện tại của drone
     private double currentLongitude;   // Kinh độ hiện tại của drone
+    
+    public enum DeliveryStatus {
+        PENDING,        // Chưa xác nhận
+        CONFIRMED,      // Đã xác nhận
+        IN_PROGRESS,    // Đang giao
+        DELIVERED,      // Hoàn thành
+        CANCELLED       // Ngoại lệ/hủy
+    }
+    
 	public String getId() {
 		return id;
 	}
