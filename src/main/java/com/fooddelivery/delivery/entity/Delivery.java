@@ -65,10 +65,11 @@ public class Delivery {
 	public void setEndTime(LocalDateTime endTime) {
 		this.endTime = endTime;
 	}
-	public String getStatus() {
+	
+	public DeliveryStatus getStatus() {
 		return status;
 	}
-	public void setStatus(String status) {
+	public void setStatus(DeliveryStatus status) {
 		this.status = status;
 	}
 	public double getCurrentLatitude() {
