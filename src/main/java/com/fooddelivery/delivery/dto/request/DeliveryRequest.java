@@ -2,8 +2,6 @@ package com.fooddelivery.delivery.dto.request;
 
 import java.time.LocalDateTime;
 
-import com.fooddelivery.delivery.entity.Delivery.DeliveryStatus;
-
 public class DeliveryRequest {
 	private Long orderId;
     private String droneId;
