@@ -33,10 +33,15 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
+                // Web login và tài nguyên tĩnh
                 .requestMatchers("/login", "/css/**", "/js/**").permitAll()
+                // API public tạm thời (để test Postman)
+                .requestMatchers("/api/**").permitAll()
+                // Phân quyền cho web
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers("/restaurant/**").hasRole("RESTAURANT")
                 .requestMatchers("/customer/**").hasRole("CUSTOMER")
+                // Các request khác bắt buộc xác thực
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form
