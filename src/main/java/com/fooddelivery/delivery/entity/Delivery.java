@@ -23,7 +23,6 @@ public class Delivery {
 
     private LocalDateTime startTime;   // Thời gian bắt đầu giao
     private LocalDateTime endTime;     // Thời gian kết thúc giao
-    private String status;             // IN_PROGRESS, DELIVERED, FAILED
     private double currentLatitude;    // Vĩ độ hiện tại của drone
     private double currentLongitude;   // Kinh độ hiện tại của drone
 	public String getId() {
@@ -56,12 +55,7 @@ public class Delivery {
 	public void setEndTime(LocalDateTime endTime) {
 		this.endTime = endTime;
 	}
-	public String getStatus() {
-		return status;
-	}
-	public void setStatus(String status) {
-		this.status = status;
-	}
+
 	public double getCurrentLatitude() {
 		return currentLatitude;
 	}
