@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import com.fooddelivery.delivery.dto.request.DeliveryRequest;
 import com.fooddelivery.delivery.entity.*;
+import com.fooddelivery.delivery.entity.Drone.DroneStatus;
 import com.fooddelivery.delivery.repository.*;
 
 @Service
@@ -28,19 +29,29 @@ public class DeliveryService {
         Drone drone = droneRepository.findById(request.getDroneId())
                 .orElseThrow(() -> new RuntimeException("Drone not found"));
 
+        // Kiểm tra drone có sẵn sàng không
+        if (drone.getStatus() != Drone.DroneStatus.AVAILABLE) {
+            throw new RuntimeException("Drone hiện không sẵn sàng để giao hàng!");
+        }
+
         Delivery delivery = new Delivery();
         delivery.setOrder(order);
         delivery.setDrone(drone);
         delivery.setCurrentLatitude(request.getCurrentLatitude());
         delivery.setCurrentLongitude(request.getCurrentLongitude());
 
-        // Tạo delivery → đồng bộ trạng thái order
+        // Tạo delivery → đồng bộ trạng thái order + drone
         delivery = deliveryRepository.save(delivery);
         order.setStatus(Order.OrderStatus.DELIVERING);
         orderRepository.save(order);
 
+        // Cập nhật drone đang giao
+        drone.setStatus(DroneStatus.DELIVERING);
+        droneRepository.save(drone);
+
         return delivery;
     }
+
 
     // Lấy danh sách tất cả delivery
     public List<Delivery> getAllDeliveries() {
@@ -68,19 +79,24 @@ public class DeliveryService {
         Delivery delivery = getDeliveryById(deliveryId);
 
         if (status == Delivery.DeliveryStatus.COMPLETED) {
-            delivery.markCompleted();  // Cập nhật status + endTime
+            delivery.markCompleted(); 
             delivery.getOrder().setStatus(Order.OrderStatus.COMPLETED);
+            delivery.getDrone().setStatus(Drone.DroneStatus.AVAILABLE); // Drone sẵn sàng
         } else if (status == Delivery.DeliveryStatus.CANCELED) {
             delivery.markCanceled();
             delivery.getOrder().setStatus(Order.OrderStatus.CANCELED);
+            delivery.getDrone().setStatus(Drone.DroneStatus.AVAILABLE); // Drone sẵn sàng
         } else if (status == Delivery.DeliveryStatus.DELIVERING) {
             delivery.setStatus(Delivery.DeliveryStatus.DELIVERING);
             delivery.getOrder().setStatus(Order.OrderStatus.DELIVERING);
+            delivery.getDrone().setStatus(Drone.DroneStatus.DELIVERING); // Drone đang giao
         }
 
         orderRepository.save(delivery.getOrder());
+        droneRepository.save(delivery.getDrone()); // Lưu drone
         return deliveryRepository.save(delivery);
     }
+
 
     // Xóa delivery
     public void deleteDelivery(String id) {

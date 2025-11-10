@@ -22,22 +22,23 @@ public class DroneService {
     private RestaurantRepository restaurantRepository;
     
     public Drone createDrone(DroneRequest request) {
-    	Optional<Restaurant> restaurantOptional = restaurantRepository.findById(request.getRestaurantId());
-    	if(restaurantOptional.isEmpty()) {
-    		throw new RuntimeException("Khong tim thay nha hang id: " + request.getRestaurantId());
-    	}
-    	
-    	Restaurant restaurant = restaurantOptional.get();
+        Restaurant restaurant = restaurantRepository.findById(request.getRestaurantId())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy nhà hàng id: " + request.getRestaurantId()));
 
         Drone drone = new Drone();
         drone.setModel(request.getModel());
-        drone.setStatus(request.getStatus());
+        // Nếu request truyền status dưới dạng String, convert sang enum
+        if(request.getStatus() != null) {
+            drone.setStatus(Drone.DroneStatus.valueOf(request.getStatus())); 
+        } else {
+            drone.setStatus(Drone.DroneStatus.AVAILABLE); // mặc định
+        }
         drone.setBatteryLevel(request.getBatteryLevel());
-        
         drone.setRestaurant(restaurant);
 
         return droneRepository.save(drone);
     }
+
     
     public List<Drone> getDronesByRestaurant(String restaurantId) {
         // Kiểm tra xem nhà hàng có tồn tại không
@@ -59,13 +60,14 @@ public class DroneService {
                 .orElseThrow(() -> new RuntimeException("Drone not found with id: " + id));
     }
     
- // Cập nhật drone
+    // Cập nhật drone
     public Drone updateDrone(String id, DroneRequest request) {
         Drone drone = getDroneById(id);
         drone.setModel(request.getModel());
-        drone.setStatus(request.getStatus());
+        if(request.getStatus() != null) {
+            drone.setStatus(Drone.DroneStatus.valueOf(request.getStatus()));
+        }
         drone.setBatteryLevel(request.getBatteryLevel());
-        
 
         if (request.getRestaurantId() != null) {
             Restaurant restaurant = restaurantRepository.findById(request.getRestaurantId())
@@ -75,6 +77,7 @@ public class DroneService {
 
         return droneRepository.save(drone);
     }
+
 
     // Xóa drone
     public void deleteDrone(String id) {

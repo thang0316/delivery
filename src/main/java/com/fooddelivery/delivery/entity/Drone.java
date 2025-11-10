@@ -15,8 +15,15 @@ public class Drone {
     @Column(nullable = false)
     private String model;
 
+    public enum DroneStatus {
+        AVAILABLE,   // Sẵn sàng nhận đơn
+        DELIVERING,  // Đang giao hàng
+        CHARGING     // Đang sạc
+    }
+
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String status;
+    private DroneStatus status = DroneStatus.AVAILABLE;
 
     private double batteryLevel;
 
@@ -42,15 +49,15 @@ public class Drone {
         this.model = model;
     }
 
-    public String getStatus() {
-        return status;
-    }
+    public DroneStatus getStatus() {
+		return status;
+	}
 
-    public void setStatus(String status) {
-        this.status = status;
-    }
+	public void setStatus(DroneStatus status) {
+		this.status = status;
+	}
 
-    public double getBatteryLevel() {
+	public double getBatteryLevel() {
         return batteryLevel;
     }
 
