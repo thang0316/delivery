@@ -12,12 +12,6 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 public class SecurityConfig {
 
-    private final CustomUserDetailsService userDetailsService;
-
-    public SecurityConfig(CustomUserDetailsService userDetailsService) {
-        this.userDetailsService = userDetailsService;
-    }
-
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -29,39 +23,19 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable())
-            .authorizeHttpRequests(auth -> auth
-                // Web login và tài nguyên tĩnh
-                .requestMatchers("/login", "/css/**", "/js/**").permitAll()
-                // API public tạm thời (để test Postman)
-                .requestMatchers("/api/**").permitAll()
-                // Phân quyền cho web
-                .requestMatchers("/admin/**").hasRole("ADMIN")
-                .requestMatchers("/restaurant/**").hasRole("RESTAURANT")
-                .requestMatchers("/customer/**").hasRole("CUSTOMER")
-                // Các request khác bắt buộc xác thực
-                .anyRequest().authenticated()
-            )
-            .formLogin(form -> form
-                .loginPage("/login")
-                .successHandler((request, response, authentication) -> {
-                    String role = authentication.getAuthorities().iterator().next().getAuthority();
-                    switch(role) {
-                        case "ROLE_ADMIN": response.sendRedirect("/admin/dashboard"); break;
-                        case "ROLE_RESTAURANT": response.sendRedirect("/restaurant/dashboard"); break;
-                        case "ROLE_CUSTOMER": response.sendRedirect("/customer/dashboard"); break;
-                        default: response.sendRedirect("/home"); break;
-                    }
-                })
-                .permitAll()
-            )
-            .logout(logout -> logout
-                .logoutUrl("/logout")
-                .logoutSuccessUrl("/login?logout")
-                .permitAll()
-            );
+                // ✅ Tắt CSRF để JS gọi API không lỗi
+                .csrf(csrf -> csrf.disable())
+
+                // ✅ Cho phép tất cả request, kể cả /admin, /restaurant, /api...
+                .authorizeHttpRequests(auth -> auth
+                        .anyRequest().permitAll()
+                )
+
+                // ✅ Tắt hoàn toàn form login và logout của Spring Security
+                .formLogin(form -> form.disable())
+                .logout(logout -> logout.disable());
 
         return http.build();
     }

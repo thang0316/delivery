@@ -6,7 +6,7 @@ public class RestaurantCreationRequest {
 	private String phone;
 	private String  owner;
 	private Boolean active = true;
-	
+
 	public String getName() {
 		return name;
 	}
@@ -37,6 +37,6 @@ public class RestaurantCreationRequest {
 	public void setActive(Boolean active) {
 		this.active = active;
 	}
-	
-	
+
+
 }

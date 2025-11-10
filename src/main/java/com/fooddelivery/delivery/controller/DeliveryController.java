@@ -17,7 +17,7 @@ public class DeliveryController {
 	@Autowired
     private DeliveryService deliveryService;
 
-	@PostMapping
+    @PostMapping
     public Delivery createDelivery(@RequestBody DeliveryRequest request) {
         return deliveryService.createDelivery(request);
     }

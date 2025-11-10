@@ -11,36 +11,39 @@ import com.fooddelivery.delivery.service.RestaurantService;
 
 @RestController
 @RequestMapping("/api/restaurants")
+@CrossOrigin(origins = "*") // ✅ Cho phép frontend (dashboard.html) gọi API từ localhost
 public class RestaurantController {
 
     @Autowired
     private RestaurantService restaurantService;
 
-    // Tạo nhà hàng
+    // ===================== TẠO NHÀ HÀNG =====================
     @PostMapping
-    public Restaurant create(@RequestBody RestaurantCreationRequest request) {
+    public Restaurant createRestaurant(@RequestBody RestaurantCreationRequest request) {
         return restaurantService.createRestaurant(request);
     }
 
-    // Lấy tất cả nhà hàng
+    // ===================== LẤY TẤT CẢ NHÀ HÀNG =====================
     @GetMapping
-    public List<Restaurant> getAll() {
+    public List<Restaurant> getAllRestaurants() {
         return restaurantService.getAllRestaurant();
     }
 
-    // Lấy nhà hàng theo ID
+    // ===================== LẤY THEO ID =====================
     @GetMapping("/{id}")
-    public Restaurant getById(@PathVariable String id) {
+    public Restaurant getRestaurantById(@PathVariable String id) {
         return restaurantService.getRestaurantById(id).orElse(null);
     }
 
-    // Cập nhật nhà hàng
+    // ===================== CẬP NHẬT =====================
     @PutMapping("/{id}")
-    public Restaurant update(@PathVariable String id, @RequestBody RestaurantCreationRequest request) {
+    public Restaurant updateRestaurant(
+            @PathVariable String id,
+            @RequestBody RestaurantCreationRequest request) {
         return restaurantService.updateRestaurant(id, request);
     }
 
-    // Xóa nhà hàng
+    // ===================== XÓA =====================
     @DeleteMapping("/{id}")
     public void deleteRestaurant(@PathVariable String id) {
         restaurantService.deleteRestaurant(id);

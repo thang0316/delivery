@@ -1,70 +1,68 @@
 package com.fooddelivery.delivery.entity;
 
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
 @Table(name = "drones")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Drone {
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
-    
 
     @Column(nullable = false)
-    private String model; // Tên hoặc loại drone
+    private String model;
 
     @Column(nullable = false)
-    private String status; // "AVAILABLE", "DELIVERING", "CHARGING", "MAINTENANCE"
+    private String status;
 
-    private double batteryLevel; // phần trăm pin (0-100)
+    private double batteryLevel;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "restaurant_id", nullable = false)
-    private Restaurant restaurant; // ID của nhà hàng mà drone thuộc về
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    private Restaurant restaurant;
 
-	public String getId() {
-		return id;
-	}
+    // ===== Getter & Setter =====
+    public String getId() {
+        return id;
+    }
 
-	public void setId(String id) {
-		this.id = id;
-	}
+    public void setId(String id) {
+        this.id = id;
+    }
 
-	public String getModel() {
-		return model;
-	}
+    public String getModel() {
+        return model;
+    }
 
-	public void setModel(String model) {
-		this.model = model;
-	}
+    public void setModel(String model) {
+        this.model = model;
+    }
 
-	public String getStatus() {
-		return status;
-	}
+    public String getStatus() {
+        return status;
+    }
 
-	public void setStatus(String status) {
-		this.status = status;
-	}
+    public void setStatus(String status) {
+        this.status = status;
+    }
 
-	public double getBatteryLevel() {
-		return batteryLevel;
-	}
+    public double getBatteryLevel() {
+        return batteryLevel;
+    }
 
-	public void setBatteryLevel(double batteryLevel) {
-		this.batteryLevel = batteryLevel;
-	}
+    public void setBatteryLevel(double batteryLevel) {
+        this.batteryLevel = batteryLevel;
+    }
 
+    public Restaurant getRestaurant() {
+        return restaurant;
+    }
 
-	public Restaurant getRestaurant() {
-		return restaurant;
-	}
-
-	public void setRestaurant(Restaurant restaurant) {
-		this.restaurant = restaurant;
-	}
-
-	
-
-    
-    
+    public void setRestaurant(Restaurant restaurant) {
+        this.restaurant = restaurant;
+    }
 }
