@@ -25,6 +25,12 @@ public class Delivery {
     private LocalDateTime endTime;     // Thời gian kết thúc giao
     private double currentLatitude;    // Vĩ độ hiện tại của drone
     private double currentLongitude;   // Kinh độ hiện tại của drone
+    
+    @PrePersist
+    public void onCreate() {
+        this.startTime = LocalDateTime.now();
+    }
+    
 	public String getId() {
 		return id;
 	}
