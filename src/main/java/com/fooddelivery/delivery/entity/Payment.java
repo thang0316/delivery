@@ -18,8 +18,20 @@ public class Payment {
 
     private String method; // Cash, CreditCard, EWallet...
     private Double amount;
-    private String status; // Pending, Completed, Failed
+   
     private LocalDateTime createdAt = LocalDateTime.now();
+    
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private PaymentStatus status = PaymentStatus.PENDING;
+    
+ // Enum trạng thái thanh toán
+    public enum PaymentStatus {
+        PENDING,    // Chưa thanh toán
+        COMPLETED,  // Thanh toán thành công
+        FAILED,     // Thanh toán không thành công
+        CANCELED    // Thanh toán bị hủy
+    }
     
 	public String getId() {
 		return id;
@@ -32,6 +44,16 @@ public class Payment {
 	}
 	public void setOrder(Order order) {
 		this.order = order;
+		if (order != null && this.amount == null) {
+            this.amount = order.getTotalAmount(); // Đồng bộ amount với order
+        }
+	}
+	
+	public PaymentStatus getStatus() {
+		return status;
+	}
+	public void setStatus(PaymentStatus status) {
+		this.status = status;
 	}
 	public String getMethod() {
 		return method;
@@ -45,12 +67,7 @@ public class Payment {
 	public void setAmount(Double amount) {
 		this.amount = amount;
 	}
-	public String getStatus() {
-		return status;
-	}
-	public void setStatus(String status) {
-		this.status = status;
-	}
+	
 	public LocalDateTime getCreatedAt() {
 		return createdAt;
 	}

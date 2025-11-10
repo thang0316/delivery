@@ -31,9 +31,9 @@ public class PaymentController {
         return paymentService.getPaymentById(id);
     }
 
-    @PutMapping("/{id}")
-    public Payment updatePayment(@PathVariable String id, @RequestBody PaymentRequest request) {
-        return paymentService.updatePayment(id, request);
+    @PutMapping("/{id}/status")
+    public Payment updatePaymentStatus(@PathVariable String id, @RequestParam Payment.PaymentStatus status) {
+        return paymentService.updatePayment(id, status);
     }
 
     @DeleteMapping("/{id}")

@@ -23,14 +23,13 @@ public class PaymentService {
 
     // 🔹 Tạo mới payment
     public Payment createPayment(PaymentRequest request) {
-    	Order order = orderRepository.findById(request.getOrderId())
-    	        .orElseThrow(() -> new RuntimeException("Order not found"));
+        Order order = orderRepository.findById(request.getOrderId())
+                .orElseThrow(() -> new RuntimeException("Order not found"));
 
         Payment payment = new Payment();
-        payment.setOrder(order);
+        payment.setOrder(order); // setter sẽ tự động lấy amount từ order.totalAmount
         payment.setMethod(request.getMethod());
-        payment.setAmount(request.getAmount());
-        payment.setStatus(request.getStatus());
+        payment.setStatus(Payment.PaymentStatus.PENDING); // mặc định là PENDING
         payment.setCreatedAt(LocalDateTime.now());
 
         return paymentRepository.save(payment);
@@ -52,14 +51,11 @@ public class PaymentService {
         return paymentRepository.findByOrderId(orderId);
     }
 
-    // 🔹 Cập nhật payment
-    public Payment updatePayment(String id, PaymentRequest request) {
+    
+    // 🔹 Cập nhật trạng thái payment
+    public Payment updatePayment(String id, Payment.PaymentStatus status) {
         Payment payment = getPaymentById(id);
-
-        if (request.getStatus() != null) payment.setStatus(request.getStatus());
-        if (request.getAmount() != null) payment.setAmount(request.getAmount());
-        if (request.getMethod() != null) payment.setMethod(request.getMethod());
-
+        payment.setStatus(status);
         return paymentRepository.save(payment);
     }
 
