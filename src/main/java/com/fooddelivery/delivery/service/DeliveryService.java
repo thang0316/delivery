@@ -11,7 +11,7 @@ import com.fooddelivery.delivery.repository.*;
 
 @Service
 public class DeliveryService {
-	@Autowired
+    @Autowired
     private DeliveryRepository deliveryRepository;
 
     @Autowired
@@ -31,13 +31,15 @@ public class DeliveryService {
         Delivery delivery = new Delivery();
         delivery.setOrder(order);
         delivery.setDrone(drone);
-        delivery.setStartTime(request.getStartTime());
-        delivery.setEndTime(request.getEndTime());
-        
         delivery.setCurrentLatitude(request.getCurrentLatitude());
         delivery.setCurrentLongitude(request.getCurrentLongitude());
 
-        return deliveryRepository.save(delivery);
+        // Tạo delivery → đồng bộ trạng thái order
+        delivery = deliveryRepository.save(delivery);
+        order.setStatus(Order.OrderStatus.DELIVERING);
+        orderRepository.save(order);
+
+        return delivery;
     }
 
     // Lấy danh sách tất cả delivery
@@ -50,20 +52,37 @@ public class DeliveryService {
         return deliveryRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Delivery not found"));
     }
-
-    // Cập nhật thông tin giao hàng
+    
     public Delivery updateDelivery(String id, DeliveryRequest request) {
         Delivery delivery = getDeliveryById(id);
 
-        delivery.setStartTime(request.getStartTime());
+        // Luôn cập nhật vị trí
         delivery.setCurrentLatitude(request.getCurrentLatitude());
         delivery.setCurrentLongitude(request.getCurrentLongitude());
-        delivery.setEndTime(request.getEndTime());
 
         return deliveryRepository.save(delivery);
     }
 
-    // Xóa
+    // Cập nhật trạng thái delivery
+    public Delivery updateStatus(String deliveryId, Delivery.DeliveryStatus status) {
+        Delivery delivery = getDeliveryById(deliveryId);
+
+        if (status == Delivery.DeliveryStatus.COMPLETED) {
+            delivery.markCompleted();  // Cập nhật status + endTime
+            delivery.getOrder().setStatus(Order.OrderStatus.COMPLETED);
+        } else if (status == Delivery.DeliveryStatus.CANCELED) {
+            delivery.markCanceled();
+            delivery.getOrder().setStatus(Order.OrderStatus.CANCELED);
+        } else if (status == Delivery.DeliveryStatus.DELIVERING) {
+            delivery.setStatus(Delivery.DeliveryStatus.DELIVERING);
+            delivery.getOrder().setStatus(Order.OrderStatus.DELIVERING);
+        }
+
+        orderRepository.save(delivery.getOrder());
+        return deliveryRepository.save(delivery);
+    }
+
+    // Xóa delivery
     public void deleteDelivery(String id) {
         deliveryRepository.deleteById(id);
     }
