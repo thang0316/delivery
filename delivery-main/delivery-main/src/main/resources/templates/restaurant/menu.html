@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Món ăn - Food Delivery</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+<div class="container mt-4">
+    <h2 class="mb-4">🍔 Quản lý món ăn</h2>
+    <form id="menuForm" class="mb-4">
+        <div class="row">
+            <div class="col-md-4"><input id="name" class="form-control" placeholder="Tên món" required></div>
+            <div class="col-md-4"><input id="price" type="number" class="form-control" placeholder="Giá" required></div>
+            <div class="col-md-4"><button class="btn btn-success w-100">Thêm món</button></div>
+        </div>
+    </form>
+    <table class="table table-bordered">
+        <thead class="table-dark">
+        <tr><th>ID</th><th>Tên món</th><th>Giá</th><th>Hành động</th></tr>
+        </thead>
+        <tbody id="menuTable"></tbody>
+    </table>
+</div>
+
+<script>
+    const loadMenu = () => {
+        fetch('/api/menu-items')
+            .then(res => res.json())
+            .then(data => {
+                const table = document.getElementById('menuTable');
+                table.innerHTML = '';
+                data.forEach(m => {
+                    table.innerHTML += `
+          <tr>
+            <td>${m.id}</td>
+            <td>${m.name}</td>
+            <td>${m.price}</td>
+            <td><button class="btn btn-danger btn-sm" onclick="deleteItem(${m.id})">Xóa</button></td>
+          </tr>`;
+                });
+            });
+    };
+
+    document.getElementById('menuForm').addEventListener('submit', e => {
+        e.preventDefault();
+        const name = document.getElementById('name').value;
+        const price = document.getElementById('price').value;
+        fetch('/api/menu-items', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ name, price })
+        }).then(() => loadMenu());
+    });
+
+    const deleteItem = id => {
+        fetch(`/api/menu-items/${id}`, { method: 'DELETE' })
+            .then(() => loadMenu());
+    };
+
+    loadMenu();
+</script>
+</body>
+</html>

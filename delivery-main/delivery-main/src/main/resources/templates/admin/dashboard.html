@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>🍔 FoodFast Delivery – Admin Dashboard</title>
+
+    <!-- Bootstrap & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --primary: #0d6efd;
+            --accent: #0dcaf0;
+            --bg-light: #f9fafc;
+            --card-bg: #ffffff;
+            --text-dark: #212529;
+            --text-muted: #6c757d;
+        }
+
+        body {
+            font-family: "Segoe UI", sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            overflow-x: hidden;
+            transition: all 0.3s ease;
+        }
+
+        /* Sidebar */
+        #sidebar {
+            width: 240px;
+            background: #ffffff;
+            height: 100vh;
+            position: fixed;
+            padding: 25px 0;
+            box-shadow: 3px 0 12px rgba(0, 0, 0, 0.08);
+            border-right: 1px solid #e9ecef;
+        }
+
+        #sidebar h4 {
+            text-align: center;
+            color: var(--primary);
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            margin-bottom: 28px;
+        }
+
+        #sidebar .nav-link {
+            color: var(--text-muted);
+            padding: 10px 18px;
+            border-radius: 8px;
+            margin: 6px 12px;
+            font-weight: 500;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.25s ease;
+        }
+
+        #sidebar .nav-link:hover {
+            background-color: rgba(13, 110, 253, 0.08);
+            color: var(--primary);
+            transform: translateX(4px);
+        }
+
+        #sidebar .nav-link.active {
+            background-color: var(--primary);
+            color: #fff !important;
+            font-weight: 600;
+            box-shadow: 0 0 10px rgba(13, 110, 253, 0.3);
+        }
+
+        /* Main */
+        #main {
+            margin-left: 250px;
+            padding: 35px;
+            background: var(--bg-light);
+            min-height: 100vh;
+        }
+
+        /* Section Transition */
+        section {
+            display: none;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.35s ease, transform 0.35s ease;
+        }
+
+        section.active-section {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Headings */
+        h2 {
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        /* Cards */
+        .card {
+            border: 1px solid #e5e7eb;
+            border-radius: 16px;
+            background: var(--card-bg);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            color: var(--text-dark);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 14px rgba(13, 110, 253, 0.15);
+        }
+
+        .card h6 {
+            font-size: 14px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .card h2 {
+            font-weight: 700;
+            font-size: 30px;
+            margin-top: 8px;
+        }
+
+        /* Chart area */
+        canvas {
+            background-color: #ffffff;
+            border-radius: 10px;
+            padding: 10px;
+        }
+
+        /* Spinner */
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+            color: var(--primary);
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #adb5bd;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary);
+        }
+    </style>
+</head>
+
+<body>
+<!-- Sidebar -->
+<nav id="sidebar">
+    <h4><i class="bi bi-lightning-charge-fill"></i> FoodFast Admin</h4>
+    <ul class="nav flex-column">
+        <li><a class="nav-link active" onclick="showSection('dashboard')"><i class="bi bi-speedometer2"></i> Bảng điều
+            khiển</a></li>
+        <li><a class="nav-link" onclick="showSection('users', 'users.html')"><i class="bi bi-people"></i> Người dùng</a>
+        </li>
+        <li><a class="nav-link" onclick="showSection('restaurants', 'restaurants.html')"><i class="bi bi-shop"></i> Nhà
+            hàng</a></li>
+        <li><a class="nav-link" onclick="showSection('orders', 'orders.html')"><i class="bi bi-box-seam"></i> Đơn
+            hàng</a></li>
+        <li><a class="nav-link" onclick="showSection('payments', 'payments.html')"><i class="bi bi-credit-card"></i>
+            Thanh toán</a></li>
+        <li><a class="nav-link" onclick="showSection('drones', 'drones.html')"><i class="bi bi-cpu"></i> Drone</a></li>
+        <li><a class="nav-link" onclick="showSection('deliveries', 'deliveries.html')">
+            <i class="bi bi-truck"></i> Giao hàng
+        </a></li>
+
+    </ul>
+</nav>
+
+<!-- Main -->
+<main id="main">
+    <section id="dashboard" class="active-section">
+        <h2 class="mb-4">📊 Tổng quan hệ thống</h2>
+
+        <div class="row g-4 mb-4">
+            <div class="col-md-3">
+                <div class="card text-center p-3">
+                    <h6>👤 Tổng Người Dùng</h6>
+                    <h2 id="userCount" class="text-primary">0</h2>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center p-3">
+                    <h6>📦 Đơn Hàng</h6>
+                    <h2 id="orderCount" class="text-danger">0</h2>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center p-3">
+                    <h6>🚁 Drone Hoạt Động</h6>
+                    <h2 id="droneCount" class="text-success">0</h2>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center p-3">
+                    <h6>💰 Tổng Doanh Thu</h6>
+                    <h2 id="revenueTotal" class="text-warning">0 ₫</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="card p-4 mb-4">
+            <h5 class="text-primary"><i class="bi bi-bar-chart-line"></i> Biểu đồ Doanh Thu</h5>
+            <canvas id="revenueChart" height="80"></canvas>
+        </div>
+    </section>
+
+    <!-- Dynamic Sections -->
+    <section id="users"></section>
+    <section id="restaurants"></section>
+    <section id="orders"></section>
+
+
+    <section id="payments"></section>
+    <section id="drones"></section>
+    <section id="deliveries"></section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    window.apiBase = "http://localhost:8080/api";
+    let currentFetchController = null;
+    let revenueChartInstance = null;
+
+    async function showSection(id, htmlFile = null) {
+        document.querySelectorAll("main section").forEach(sec => sec.classList.remove("active-section"));
+        const section = document.getElementById(id);
+        section.classList.add("active-section");
+
+        document.querySelectorAll("#sidebar .nav-link").forEach(l => l.classList.remove("active"));
+        const link = Array.from(document.querySelectorAll("#sidebar .nav-link")).find(a => a.getAttribute("onclick").includes(id));
+        if (link) link.classList.add("active");
+
+        if (id === "dashboard") {
+            loadCounts();
+            loadRevenueChart();
+            return;
+        }
+        if (htmlFile) await loadSectionContent(id, htmlFile);
+    }
+
+    async function loadSectionContent(sectionId, filePath) {
+        if (currentFetchController) currentFetchController.abort();
+        currentFetchController = new AbortController();
+        const { signal } = currentFetchController;
+
+        const section = document.getElementById(sectionId);
+        section.innerHTML = `
+      <div class="text-center py-5 text-muted">
+        <div class="spinner-border mb-3" role="status"></div>
+        <p>Đang tải trang...</p>
+      </div>`;
+
+        try {
+            const res = await fetch("/admin/" + filePath, { signal });
+            if (!res.ok) throw new Error("Không tìm thấy file: " + filePath);
+            let html = await res.text();
+            html = html.replace(/<\/?(html|head|body)[^>]*>/g, "").trim();
+            section.innerHTML = html;
+            document.querySelectorAll(".modal-backdrop").forEach(e => e.remove());
+            document.body.classList.remove("modal-open");
+            document.body.style.overflow = "";
+
+            const scripts = section.querySelectorAll("script");
+            scripts.forEach(oldScript => {
+                const newScript = document.createElement("script");
+                if (oldScript.src) newScript.src = oldScript.src;
+                else {
+                    let code = oldScript.textContent;
+                    code = code.replace(/\b(let|const)\b/g, "var");
+                    code = code.replace(/API_BASE\s*=\s*[^;]+;/g, 'API_BASE = window.apiBase;');
+                    newScript.textContent = `window.apiBase="${window.apiBase}";${code}`;
+                }
+                document.body.appendChild(newScript);
+            });
+        } catch (err) {
+            if (err.name !== "AbortError") {
+                section.innerHTML = `<div class="alert alert-danger m-3">❌ ${err.message}</div>`;
+            }
+        }
+    }
+
+    async function loadCounts() {
+        try {
+            const [users, orders, drones, payments] = await Promise.all([
+                fetch(window.apiBase + "/users").then(r => r.json()),
+                fetch(window.apiBase + "/orders").then(r => r.json()),
+                fetch(window.apiBase + "/drones").then(r => r.json()),
+                fetch(window.apiBase + "/payments").then(r => r.json())
+            ]);
+
+            document.getElementById("userCount").textContent = users.length;
+            document.getElementById("orderCount").textContent = orders.length;
+            document.getElementById("droneCount").textContent = drones.length;
+            const total = payments.reduce((sum, p) => sum + (p.amount || 0), 0);
+            document.getElementById("revenueTotal").textContent = total.toLocaleString("vi-VN") + " ₫";
+        } catch (err) {
+            console.error("⚠️ Lỗi tải thống kê:", err);
+        }
+    }
+
+    async function loadRevenueChart() {
+        try {
+            const res = await fetch(window.apiBase + "/payments");
+            if (!res.ok) throw new Error("Không thể tải dữ liệu doanh thu!");
+            const payments = await res.json();
+            const monthly = {};
+            payments.forEach(p => {
+                const m = new Date(p.createdAt).getMonth() + 1;
+                monthly[m] = (monthly[m] || 0) + (p.amount || 0);
+            });
+
+            const ctx = document.getElementById("revenueChart");
+            if (revenueChartInstance) revenueChartInstance.destroy();
+
+            revenueChartInstance = new Chart(ctx, {
+                type: "bar",
+                data: {
+                    labels: Object.keys(monthly).map(m => "Tháng " + m),
+                    datasets: [{
+                        label: "Doanh thu (VND)",
+                        data: Object.values(monthly),
+                        backgroundColor: "rgba(13,110,253,0.5)",
+                        borderColor: "#0d6efd",
+                        borderWidth: 2,
+                        hoverBackgroundColor: "rgba(13,110,253,0.7)"
+                    }]
+                },
+                options: {
+                    scales: { y: { beginAtZero: true } },
+                    plugins: { legend: { labels: { color: "#212529" } } }
+                }
+            });
+        } catch (err) {
+            console.error("⚠️ Lỗi biểu đồ:", err);
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => showSection("dashboard"));
+</script>
+</body>
