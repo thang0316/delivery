@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import com.fooddelivery.delivery.dto.request.OrderRequest;
 import com.fooddelivery.delivery.entity.MenuItem;
 import com.fooddelivery.delivery.entity.Order;
+import com.fooddelivery.delivery.entity.Order.OrderStatus;
 import com.fooddelivery.delivery.entity.OrderItem;
 import com.fooddelivery.delivery.entity.Restaurant;
 import com.fooddelivery.delivery.entity.User;
@@ -46,7 +47,7 @@ public class OrderService {
         order.setCustomerName(request.getCustomerName());
         order.setCustomerPhone(request.getCustomerPhone());
         order.setCustomerAddress(request.getCustomerAddress());
-        order.setStatus("ĐANG CHỜ XÁC NHẬN");
+        order.setStatus(OrderStatus.PENDING); // Mặc định chưa xác nhận
 
         double total = 0.0;
 
@@ -89,7 +90,7 @@ public class OrderService {
     }
 
     //  Cập nhật trạng thái đơn hàng
-    public Order updateStatus(Long orderId, String status) {
+    public Order updateStatus(Long orderId, OrderStatus status) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng cần cập nhật!"));
         order.setStatus(status);

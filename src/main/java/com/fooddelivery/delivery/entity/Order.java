@@ -22,10 +22,12 @@ public class Order {
     private Double totalAmount;
     
     
- // Trạng thái đơn hàng: PENDING, CONFIRMED, DELIVERING, COMPLETED, CANCELED
-    private String status;
-    
-    private LocalDateTime createdAt  = LocalDateTime.now();
+    // Trạng thái đơn hàng
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private OrderStatus status = OrderStatus.PENDING;
+
+    private LocalDateTime createdAt = LocalDateTime.now();
     
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
@@ -37,6 +39,15 @@ public class Order {
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> items;
+    
+    // Enum trạng thái đơn hàng
+    public enum OrderStatus {
+        PENDING,     // Chưa xác nhận
+        CONFIRMED,   // Đã xác nhận
+        DELIVERING,  // Đang giao
+        COMPLETED,   // Hoàn thành
+        CANCELED     // Hủy
+    }
 
 	public Long getId() {
 		return id;
@@ -78,11 +89,13 @@ public class Order {
 		this.totalAmount = totalAmount;
 	}
 
-	public String getStatus() {
+	
+	
+	public OrderStatus getStatus() {
 		return status;
 	}
 
-	public void setStatus(String status) {
+	public void setStatus(OrderStatus status) {
 		this.status = status;
 	}
 
