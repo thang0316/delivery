@@ -142,18 +142,19 @@
             color: var(--primary);
         }
 
-        /* Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
+        #logoutBtn {
+            border-radius: 8px;
+            font-size: 15px;
+            letter-spacing: 0.3px;
+            transition: all 0.25s ease;
         }
 
-        ::-webkit-scrollbar-thumb {
-            background: #adb5bd;
-            border-radius: 10px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--primary);
+        #logoutBtn:hover {
+            background: linear-gradient(90deg, rgba(0, 255, 225, 0.93), #00dfff);
+            color: #fff;
+            border: none;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(197, 71, 241, 0.3);
         }
     </style>
 </head>
@@ -163,20 +164,13 @@
 <nav id="sidebar">
     <h4><i class="bi bi-lightning-charge-fill"></i> FoodFast Admin</h4>
     <ul class="nav flex-column">
-        <li><a class="nav-link active" onclick="showSection('dashboard')"><i class="bi bi-speedometer2"></i> Bảng điều
-            khiển</a></li>
-        <li><a class="nav-link" onclick="showSection('users', 'users.html')"><i class="bi bi-people"></i> Người dùng</a>
-        </li>
-        <li><a class="nav-link" onclick="showSection('restaurants', 'restaurants.html')"><i class="bi bi-shop"></i> Nhà
-            hàng</a></li>
-        <li><a class="nav-link" onclick="showSection('orders', 'orders.html')"><i class="bi bi-box-seam"></i> Đơn
-            hàng</a></li>
-        <li><a class="nav-link" onclick="showSection('payments', 'payments.html')"><i class="bi bi-credit-card"></i>
-            Thanh toán</a></li>
+        <li><a class="nav-link active" onclick="showSection('dashboard')"><i class="bi bi-speedometer2"></i> Bảng điều khiển</a></li>
+        <li><a class="nav-link" onclick="showSection('users', 'users.html')"><i class="bi bi-people"></i> Người dùng</a></li>
+        <li><a class="nav-link" onclick="showSection('restaurants', 'restaurants.html')"><i class="bi bi-shop"></i> Nhà hàng</a></li>
+        <li><a class="nav-link" onclick="showSection('orders', 'orders.html')"><i class="bi bi-box-seam"></i> Đơn hàng</a></li>
+        <li><a class="nav-link" onclick="showSection('payments', 'payments.html')"><i class="bi bi-credit-card"></i> Thanh toán</a></li>
         <li><a class="nav-link" onclick="showSection('drones', 'drones.html')"><i class="bi bi-cpu"></i> Drone</a></li>
-        <li><a class="nav-link" onclick="showSection('deliveries', 'deliveries.html')">
-            <i class="bi bi-truck"></i> Giao hàng
-        </a></li>
+        <li><a class="nav-link" onclick="showSection('deliveries', 'deliveries.html')"><i class="bi bi-truck"></i> Giao hàng</a></li>
 
     </ul>
 </nav>
@@ -184,7 +178,12 @@
 <!-- Main -->
 <main id="main">
     <section id="dashboard" class="active-section">
-        <h2 class="mb-4">📊 Tổng quan hệ thống</h2>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="mb-0">Tổng quan hệ thống</h2>
+            <button id="logoutBtn" class="btn btn-outline-danger btn-sm fw-semibold px-3">
+                <i class="bi bi-box-arrow-right"></i> Đăng xuất
+            </button>
+        </div>
 
         <div class="row g-4 mb-4">
             <div class="col-md-3">

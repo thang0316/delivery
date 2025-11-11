@@ -94,6 +94,11 @@ public class OrderService {
         return orderRepository.findByCustomer_Id(userId);
     }
 
+    // lấy đơn hàng theo nhà hàng
+    public long countOrdersByRestaurant(String restaurantId) {
+        return orderRepository.countByRestaurant_Id(restaurantId);
+    }
+
     //  Cập nhật trạng thái đơn hàng
     public Order updateStatus(Long orderId, OrderStatus status) {
         Order order = orderRepository.findById(orderId)

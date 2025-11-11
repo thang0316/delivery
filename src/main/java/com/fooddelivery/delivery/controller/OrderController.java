@@ -63,6 +63,13 @@ public class OrderController {
     }
 
 
+    // lấy đơn hàng của 1 nhà hàng
+    @GetMapping("/restaurant/{restaurantId}/count")
+    public ResponseEntity<Long> countOrdersByRestaurant(@PathVariable String restaurantId) {
+        long count = orderService.countOrdersByRestaurant(restaurantId);
+        return ResponseEntity.ok(count);
+    }
+
     //  Xóa đơn hàng
     @DeleteMapping("/{orderId}")
     public ResponseEntity<String> deleteOrder(@PathVariable Long orderId) {
