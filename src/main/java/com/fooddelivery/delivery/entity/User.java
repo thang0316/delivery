@@ -27,7 +27,7 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-    @Column(length = 20)
+    @Column(unique = true, length = 20)
     private String phone;
 
     @Column(name = "created_at")
