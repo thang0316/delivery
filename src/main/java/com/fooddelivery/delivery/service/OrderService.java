@@ -55,6 +55,11 @@ public class OrderService {
             MenuItem menuItem = menuItemRepository.findById(i.getMenuItemId())
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy món ăn trong menu!"));
 
+         //  Kiểm tra món ăn có thuộc cùng nhà hàng với đơn hàng không
+            if (!menuItem.getRestaurant().getId().equals(restaurant.getId())) {
+                throw new RuntimeException("Tất cả món phải thuộc cùng 1 nhà hàng!");
+            }
+            
             OrderItem orderItem = new OrderItem();
             orderItem.setOrder(order);
             orderItem.setMenuItem(menuItem);
