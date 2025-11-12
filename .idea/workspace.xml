@@ -6,10 +6,22 @@
   <component name="ChangeListManager">
     <list default="true" id="2d90ef43-060f-4a2e-852b-9e30b95e91be" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/fooddelivery/delivery/controller/OrderController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/fooddelivery/delivery/controller/OrderController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/fooddelivery/delivery/repository/OrderRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/fooddelivery/delivery/repository/OrderRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/fooddelivery/delivery/service/OrderService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/fooddelivery/delivery/service/OrderService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/templates/admin/dashboard.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/templates/admin/dashboard.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/application.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/application.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/static/ restaurant/menu.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/static/admin/dashboard.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/static/admin/deliveries.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/static/admin/drone.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/static/admin/js/auth.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/static/admin/js/dashboard.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/static/admin/js/drone.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/static/admin/js/sections.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/static/admin/order.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/static/admin/payment.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/static/admin/restaurants.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/static/admin/users.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/static/index.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/static/login.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/static/register.html" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -49,9 +61,10 @@
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
     &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
     &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
     &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/phant/Downloads/delivery-main/delivery-main/delivery-main/pom.xml&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/phant/OneDrive/Desktop/delivery/pom.xml&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
@@ -66,7 +79,7 @@
       <recent name="C:\Users\MY PC\Downloads\delivery-main\delivery-main\src\main\resources\static" />
     </key>
   </component>
-  <component name="RunManager">
+  <component name="RunManager" selected="Application.DeliveryApplication">
     <configuration name="DeliveryApplication" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="com.fooddelivery.delivery.DeliveryApplication" />
       <module name="delivery" />
@@ -76,6 +89,13 @@
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="DeliveryApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="delivery" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.fooddelivery.delivery.DeliveryApplication" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
@@ -105,6 +125,8 @@
       <workItem from="1762726555060" duration="6118000" />
       <workItem from="1762739699485" duration="2733000" />
       <workItem from="1762833839260" duration="1308000" />
+      <workItem from="1762959061222" duration="1606000" />
+      <workItem from="1762963552955" duration="240000" />
     </task>
     <servers />
   </component>
