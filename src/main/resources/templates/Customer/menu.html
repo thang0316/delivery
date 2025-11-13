@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Menu</title>
+    <link rel="stylesheet" href="/css/customer.css">
+</head>
+<body>
+
+<header>
+    <h2>Menu món ăn</h2>
+    <nav>
+        <a href="/customer/cart">Giỏ hàng</a>
+        <a href="/customer/orders">Đơn hàng</a>
+    </nav>
+</header>
+
+<div class="container">
+    <div id="menuList" class="menu-grid"></div>
+</div>
+
+<script>
+    const RESTAURANT_ID = "9e895695-d112-436a-8cbf-4702af29ccdb";
+
+    fetch(`/api/menu-items/restaurant/${RESTAURANT_ID}`)
+        .then(res => res.json())
+        .then(data => {
+            let html = "";
+            data.forEach(m => {
+                html += `
+        <div class="card">
+            <h3>${m.name}</h3>
+            <p>${m.description}</p>
+            <p><b>${m.price.toLocaleString()}đ</b></p>
+            <button class="btn" onclick="addToCart(${m.id}, '${m.name}', ${m.price})">Thêm vào giỏ</button>
+        </div>`;
+            });
+            document.getElementById("menuList").innerHTML = html;
+        });
+
+    function addToCart(id, name, price) {
+        let cart = JSON.parse(localStorage.getItem("cart") || "[]");
+        let existing = cart.find(i => i.id === id);
+        if (existing) {
+            existing.qty++;
+        } else {
+            cart.push({ id, name, price, qty: 1 });
+        }
+        localStorage.setItem("cart", JSON.stringify(cart));
+        alert("Đã thêm vào giỏ!");
+    }
+</script>
+
+</body>
+</html>

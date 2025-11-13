@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Đơn hàng</title>
+    <link rel="stylesheet" href="/css/customer.css">
+</head>
+<body>
+
+<div class="container">
+    <h2>Lịch sử đơn hàng</h2>
+
+    <div id="ordersList"></div>
+</div>
+
+<script>
+    const USER_ID = "04bb5c42-be82-11f0-b892-141333f7b42a";
+
+    fetch(`/api/orders/user/${USER_ID}`)
+        .then(res => res.json())
+        .then(data => {
+            let html = "";
+            data.forEach(o => {
+                html += `
+        <div class="card">
+            <h3>Đơn #${o.id}</h3>
+            <p>Trạng thái: <b>${o.status}</b></p>
+            <p>Tổng: ${o.totalAmount.toLocaleString()}đ</p>
+            <p>Ngày: ${o.createdAt}</p>
+        </div>`;
+            });
+            document.getElementById("ordersList").innerHTML = html;
+        });
+</script>
+
+</body>
+</html>

@@ -5,23 +5,17 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="2d90ef43-060f-4a2e-852b-9e30b95e91be" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/src/main/resources/templates/Customer/dashboard.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/templates/Customer/feedback.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/templates/Customer/home.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/templates/Customer/payments.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/templates/Customer/profile.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/templates/restaurant/payments.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/templates/restaurant/profile.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/application.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/application.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/static/ restaurant/menu.html" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/static/admin/dashboard.html" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/static/admin/deliveries.html" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/static/admin/drone.html" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/static/admin/js/auth.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/static/admin/js/dashboard.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/static/admin/js/drone.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/static/admin/js/sections.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/static/admin/order.html" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/static/admin/payment.html" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/static/admin/restaurants.html" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/static/admin/users.html" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/static/index.html" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/static/login.html" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/static/register.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/fooddelivery/delivery/controller/CustomerPageController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/fooddelivery/delivery/controller/CustomerPageController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/fooddelivery/delivery/controller/RestaurantPageController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/fooddelivery/delivery/controller/RestaurantPageController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/templates/restaurant/menu.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/templates/restaurant/menu.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -32,6 +26,7 @@
     <option name="RECENT_TEMPLATES">
       <list>
         <option value="Class" />
+        <option value="HTML File" />
       </list>
     </option>
   </component>
@@ -57,6 +52,7 @@
   <component name="PropertiesComponent">{
   &quot;keyToString&quot;: {
     &quot;Application.DeliveryApplication.executor&quot;: &quot;Run&quot;,
+    &quot;DefaultHtmlFileTemplate&quot;: &quot;HTML File&quot;,
     &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
@@ -127,6 +123,10 @@
       <workItem from="1762833839260" duration="1308000" />
       <workItem from="1762959061222" duration="1606000" />
       <workItem from="1762963552955" duration="240000" />
+      <workItem from="1762964070256" duration="710000" />
+      <workItem from="1763004925549" duration="193000" />
+      <workItem from="1763032251737" duration="6130000" />
+      <workItem from="1763048740913" duration="1821000" />
     </task>
     <servers />
   </component>
