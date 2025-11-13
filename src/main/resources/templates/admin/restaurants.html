@@ -90,7 +90,7 @@
         <input id="searchInput" type="text" class="form-control w-25" placeholder="🔍 Tìm theo ID, tên hoặc địa chỉ...">
     </div>
 
-    <!-- 🔹 Bảng nhà hàng -->
+    <!-- 🔹 Bảng -->
     <div class="card shadow-sm">
         <div class="card-body p-0">
             <table class="table table-hover mb-0 align-middle" id="restaurantTable">
@@ -124,7 +124,7 @@
                 .join("");
             select.innerHTML = options || `<option disabled>Không có người dùng phù hợp</option>`;
         } catch {
-            select.innerHTML = `<option disabled>Lỗi tải danh sách người dùng</option>`;
+            select.innerHTML = `<option disabled>Lỗi tải danh sách</option>`;
         }
     }
 
@@ -135,32 +135,22 @@
             const res = await fetch(`${API_BASE}/restaurants`);
             restaurants = await res.json();
 
-            // ✅ Gọi thêm tổng đơn hàng từng nhà hàng
             await Promise.all(
                 restaurants.map(async r => {
                     try {
-                        const orderRes = await fetch(
-                            `${API_BASE}/orders/restaurant/${encodeURIComponent(r.id.trim())}/count`
-                        );
+                        const orderRes = await fetch(`${API_BASE}/orders/restaurant/${encodeURIComponent(r.id)}/count`);
                         const count = orderRes.ok ? await orderRes.text() : 0;
                         r.totalOrders = parseInt(count) || 0;
-                    } catch {
-                        r.totalOrders = 0;
-                    }
+                    } catch { r.totalOrders = 0; }
                 })
             );
 
             renderRestaurants(restaurants);
             updateStats();
-        } catch {
-            tbody.innerHTML = `<tr><td colspan="8" class="text-danger text-center">Lỗi tải danh sách nhà hàng</td></tr>`;
-        }
-    }
 
-    function updateStats() {
-        document.getElementById("totalRestaurants").innerText = restaurants.length;
-        document.getElementById("openCount").innerText = restaurants.filter(r => r.active).length;
-        document.getElementById("closedCount").innerText = restaurants.filter(r => !r.active).length;
+        } catch {
+            tbody.innerHTML = `<tr><td colspan="8" class="text-danger text-center">Lỗi tải danh sách</td></tr>`;
+        }
     }
 
     function renderRestaurants(list) {
@@ -170,57 +160,73 @@
             return;
         }
         tbody.innerHTML = list.map(r => `
-        <tr data-id="${r.id}">
-          <td>${r.id}</td>
-          <td>${r.name || ""}</td>
-          <td>${r.address || ""}</td>
-          <td>${r.phone || ""}</td>
-          <td>${r.owner?.username || r.owner || "—"}</td>
-          <td class="fw-bold text-center">${r.totalOrders ?? 0}</td>
-          <td><span class="${r.active ? 'badge-open' : 'badge-closed'}">${r.active ? 'Đang hoạt động' : 'Tạm ngưng'}</span></td>
-          <td><button class="btn btn-sm btn-outline-danger" onclick="deleteRestaurant('${r.id}')"><i class="bi bi-trash"></i></button></td>
-        </tr>`).join("");
+            <tr>
+                <td>${r.id}</td>
+                <td>${r.name}</td>
+                <td>${r.address}</td>
+                <td>${r.phone}</td>
+                <td>${r.owner?.username || "—"}</td>
+                <td class="fw-bold text-center">${r.totalOrders ?? 0}</td>
+                <td><span class="${r.active ? 'badge-open' : 'badge-closed'}">${r.active ? 'Đang hoạt động' : 'Tạm ngưng'}</span></td>
+                <td><button class="btn btn-sm btn-outline-danger" onclick="deleteRestaurant('${r.id}')"><i class="bi bi-trash"></i></button></td>
+            </tr>
+        `).join("");
+    }
+
+    function updateStats() {
+        document.getElementById("totalRestaurants").innerText = restaurants.length;
+        document.getElementById("openCount").innerText = restaurants.filter(r => r.active).length;
+        document.getElementById("closedCount").innerText = restaurants.filter(r => !r.active).length;
     }
 
     async function createRestaurant() {
         const data = {
-            name: name.value.trim(),
-            address: address.value.trim(),
-            phone: phone.value.trim(),
-            owner: ownerSelect.value,
-            active: status.value === "OPEN"
+            name: document.getElementById("name").value.trim(),
+            address: document.getElementById("address").value.trim(),
+            phone: document.getElementById("phone").value.trim(),
+            owner: document.getElementById("ownerSelect").value,   // <-- SỬA TẠI ĐÂY
+            active: document.getElementById("status").value === "OPEN"
         };
+
         if (!data.name || !data.address || !data.phone || !data.owner) {
             alert("⚠️ Vui lòng nhập đầy đủ thông tin!");
             return;
         }
+
         try {
             const res = await fetch(`${API_BASE}/restaurants`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(data)
             });
-            if (!res.ok) throw new Error(await res.text());
+
+            if (!res.ok) {
+                const errText = await res.text();
+                throw new Error(errText);
+            }
+
             alert("✅ Thêm nhà hàng thành công!");
             await loadRestaurants();
+
         } catch (err) {
-            alert("❌ Lỗi thêm nhà hàng!\n" + err.message);
+            console.error("❌ ERROR:", err);
+            alert("Lỗi thêm nhà hàng:\n" + err.message);
         }
     }
 
+
     async function deleteRestaurant(id) {
-        if (!confirm("Bạn có chắc muốn xóa nhà hàng này?")) return;
+        if (!confirm("Xóa nhà hàng?")) return;
         try {
             const res = await fetch(`${API_BASE}/restaurants/${id}`, { method: "DELETE" });
             if (!res.ok) throw new Error(await res.text());
-            alert("🗑️ Xóa thành công!");
+            alert("🗑 Xóa thành công!");
             loadRestaurants();
         } catch {
             alert("❌ Lỗi khi xóa nhà hàng!");
         }
     }
 
-    // 🔍 Tìm kiếm
     document.getElementById("searchInput").addEventListener("input", e => {
         const kw = e.target.value.trim().toLowerCase();
         const filtered = !kw
@@ -229,15 +235,14 @@
         renderRestaurants(filtered);
     });
 
-    // 🧮 Lọc theo tổng đơn
     function applyFilter() {
         const filter = document.getElementById("filterSelect").value;
         if (filter === "ALL") return renderRestaurants(restaurants);
         const max = Math.max(...restaurants.map(r => r.totalOrders));
         const min = Math.min(...restaurants.map(r => r.totalOrders));
-        const filtered =
-            filter === "MAX" ? restaurants.filter(r => r.totalOrders === max)
-                : restaurants.filter(r => r.totalOrders === min);
+        const filtered = filter === "MAX"
+            ? restaurants.filter(r => r.totalOrders === max)
+            : restaurants.filter(r => r.totalOrders === min);
         renderRestaurants(filtered);
     }
 
@@ -245,6 +250,7 @@
         await loadUsers();
         await loadRestaurants();
     })();
+
 </script>
 </body>
 </html>

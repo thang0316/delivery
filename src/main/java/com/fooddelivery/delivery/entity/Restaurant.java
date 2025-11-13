@@ -2,6 +2,7 @@ package com.fooddelivery.delivery.entity;
 
 import java.time.LocalDateTime;
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
@@ -24,6 +25,7 @@ public class Restaurant {
 
     @OneToOne
     @JoinColumn(name = "owner_id", nullable = false)
+    @JsonIgnore  // ⭐ FIX LỖI 500 (vòng lặp JSON)
     private User owner;
 
     @Column(nullable = false)

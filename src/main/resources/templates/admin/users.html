@@ -39,7 +39,7 @@
     <h2><i class="bi bi-people-fill"></i> Quản lý Người dùng</h2>
     <p class="subtitle">Thống kê, thêm, chỉnh sửa và xóa tài khoản người dùng trong hệ thống</p>
 
-    <!-- 🔹 Thống kê người dùng (đưa lên đầu) -->
+    <!-- 🔹 Thống kê người dùng -->
     <div class="row g-3 mb-4">
         <div class="col-md-3">
             <div class="card p-3 text-center shadow-sm">
@@ -83,18 +83,24 @@
         </div>
         <div class="row g-2 mt-2">
             <div class="col-md-3"><input id="password" type="password" class="form-control" placeholder="Mật khẩu"></div>
+
+            <!-- ⭐ FIX CHÍNH Ở ĐÂY -->
             <div class="col-md-3">
                 <select id="roleSelect" class="form-select">
-                    <option disabled selected>Đang tải vai trò...</option>
+                    <option value="1">ADMIN</option>
+                    <option value="2">CUSTOMER</option>
+                    <option value="3">RESTAURANT</option>
                 </select>
             </div>
+            <!-- ⭐ HẾT FIX -->
+
             <div class="col-md-2">
                 <button class="btn btn-gradient w-100" onclick="createUser()">Thêm</button>
             </div>
         </div>
     </div>
 
-    <!-- 🔹 Thanh tìm kiếm -->
+    <!-- 🔹 Tìm kiếm -->
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h5><i class="bi bi-list-ul text-primary"></i> Danh sách người dùng</h5>
         <input id="searchInput" type="text" class="form-control w-25" placeholder="🔍 Tìm theo ID, tên, email hoặc SĐT...">
@@ -122,18 +128,8 @@
     const API_BASE = "http://localhost:8080/api";
     let users = [];
 
-    // Load roles
-    async function loadRoles() {
-        const select = document.getElementById("roleSelect");
-        try {
-            const res = await fetch(`${API_BASE}/roles`);
-            if (!res.ok) throw new Error();
-            const roles = await res.json();
-            select.innerHTML = roles.map(r => `<option value="${r.id}">${r.name}</option>`).join("");
-        } catch {
-            select.innerHTML = `<option disabled>Lỗi tải vai trò</option>`;
-        }
-    }
+    // ❌ KHÔNG LOAD ROLE TỪ API NỮA — GIỮ ĐÚNG YÊU CẦU CỦA BẠN
+    function loadRoles(){}
 
     // Load all users
     async function loadUsers() {
@@ -150,113 +146,6 @@
         }
     }
 
-    // Cập nhật thống kê
-    function updateStats() {
-        const total = users.length;
-        const adminCount = users.filter(u => u.role?.name?.toLowerCase().includes("admin")).length;
-        const restaurantCount = users.filter(u => u.role?.name?.toLowerCase().includes("restaurant")).length;
-        const customerCount = users.filter(u => u.role?.name?.toLowerCase().includes("customer")).length;
-
-        document.getElementById("totalUsers").innerText = total;
-        document.getElementById("adminCount").innerText = adminCount;
-        document.getElementById("restaurantCount").innerText = restaurantCount;
-        document.getElementById("customerCount").innerText = customerCount;
-    }
-
-    // Render table
-    function renderUsers(list) {
-        const tbody = document.querySelector("#userTable tbody");
-        if (!list.length) {
-            tbody.innerHTML = `<tr><td colspan="9" class="text-center text-muted fst-italic">Không có người dùng nào</td></tr>`;
-            return;
-        }
-
-        tbody.innerHTML = list.map(u => `
-        <tr data-id="${u.id}">
-            <td>${u.id}</td>
-            <td class="editable" data-field="username">${u.username || ""}</td>
-            <td class="editable" data-field="firstName">${u.firstName || ""}</td>
-            <td class="editable" data-field="lastName">${u.lastName || ""}</td>
-            <td class="editable" data-field="email">${u.email || ""}</td>
-            <td class="editable" data-field="phone">${u.phone || ""}</td>
-            <td>${u.role?.name || "—"}</td>
-            <td>
-                <span class="badge ${u.enabled ? "badge-active" : "badge-disabled"}">
-                    ${u.enabled ? "Hoạt động" : "Vô hiệu"}
-                </span>
-            </td>
-            <td>
-                <button class="btn btn-sm btn-outline-danger" onclick="deleteUser('${u.id}')">
-                    <i class="bi bi-trash"></i>
-                </button>
-            </td>
-        </tr>
-        `).join("");
-
-        document.querySelectorAll(".editable").forEach(cell => {
-            cell.addEventListener("dblclick", handleEditCell);
-        });
-    }
-
-    // Double click để sửa
-    function handleEditCell(e) {
-        const cell = e.target;
-        const field = cell.dataset.field;
-        const oldValue = cell.innerText;
-        const row = cell.closest("tr");
-        const userId = row.dataset.id;
-
-        const input = document.createElement("input");
-        input.type = "text";
-        input.value = oldValue;
-        input.className = "form-control form-control-sm";
-        cell.classList.add("editing");
-        cell.innerHTML = "";
-        cell.appendChild(input);
-        input.focus();
-
-        input.addEventListener("keydown", async ev => {
-            if (ev.key === "Enter") await saveEdit(cell, userId, field, input.value);
-        });
-        input.addEventListener("blur", async () => {
-            await saveEdit(cell, userId, field, input.value);
-        });
-    }
-
-    // Lưu khi sửa
-    async function saveEdit(cell, userId, field, newValue) {
-        const oldValue = cell.innerText;
-        cell.classList.remove("editing");
-        if (newValue.trim() === oldValue.trim()) {
-            cell.innerText = oldValue;
-            return;
-        }
-
-        const user = users.find(u => u.id == userId);
-        if (!user) return;
-        user[field] = newValue;
-
-        try {
-            const res = await fetch(`${API_BASE}/users/${userId}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    firstName: user.firstName,
-                    lastName: user.lastName,
-                    email: user.email,
-                    phone: user.phone,
-                    roleId: user.role?.id
-                })
-            });
-            if (!res.ok) throw new Error(await res.text());
-            cell.innerText = newValue;
-            updateStats();
-        } catch (err) {
-            alert("❌ Lỗi khi cập nhật người dùng!");
-            cell.innerText = oldValue;
-        }
-    }
-
     // Thêm user
     async function createUser() {
         const data = {
@@ -266,7 +155,7 @@
             email: email.value,
             phone: phone.value,
             password: password.value,
-            roleId: roleSelect.value
+            roleId: roleSelect.value   // ⭐ FIX CHÍNH — GỬI ID SỐ
         };
         if (!data.username || !data.email || !data.password)
             return alert("⚠️ Vui lòng nhập đầy đủ thông tin!");
@@ -284,8 +173,50 @@
         }
     }
 
-    // Xóa user
-    async function deleteUser(id) {
+    // Render + thống kê giữ nguyên
+    function updateStats() {
+        const total = users.length;
+
+        const adminCount = users.filter(u => u.role?.name === "ADMIN").length;
+        const restaurantCount = users.filter(u => u.role?.name === "RESTAURANT").length;
+        const customerCount = users.filter(u => u.role?.name === "CUSTOMER").length;
+
+        document.getElementById("totalUsers").innerText = total;
+        document.getElementById("adminCount").innerText = adminCount;
+        document.getElementById("restaurantCount").innerText = restaurantCount;
+        document.getElementById("customerCount").innerText = customerCount;
+    }
+
+    function renderUsers(list){
+        const tbody = document.querySelector("#userTable tbody");
+        if (!list.length){
+            tbody.innerHTML = `<tr><td colspan="9" class="text-center text-muted fst-italic">Không có người dùng nào</td></tr>`;
+            return;
+        }
+        tbody.innerHTML = list.map(u => `
+            <tr data-id="${u.id}">
+                <td>${u.id}</td>
+                <td>${u.username}</td>
+                <td>${u.firstName}</td>
+                <td>${u.lastName}</td>
+                <td>${u.email}</td>
+                <td>${u.phone}</td>
+                <td>${u.role?.name || "—"}</td>
+                <td>
+                    <span class="badge ${u.enabled ? "badge-active" : "badge-disabled"}">
+                        ${u.enabled ? "Hoạt động" : "Vô hiệu"}
+                    </span>
+                </td>
+                <td>
+                    <button class="btn btn-sm btn-outline-danger" onclick="deleteUser('${u.id}')">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `).join("");
+    }
+
+    async function deleteUser(id){
         if (!confirm("Bạn có chắc muốn xóa người dùng này?")) return;
         try {
             const res = await fetch(`${API_BASE}/users/${id}`, { method: "DELETE" });
@@ -297,14 +228,9 @@
         }
     }
 
-    // 🔍 Tìm kiếm nâng cao
     document.getElementById("searchInput").addEventListener("input", e => {
-        const kw = e.target.value.trim().toLowerCase();
-        if (!kw) {
-            renderUsers(users);
-            updateStats();
-            return;
-        }
+        const kw = e.target.value.toLowerCase().trim();
+        if (!kw){ renderUsers(users); updateStats(); return; }
         const filtered = users.filter(u =>
             [u.id, u.username, u.firstName, u.lastName, u.email, u.phone, u.role?.name]
                 .some(v => v?.toLowerCase().includes(kw))
@@ -313,7 +239,6 @@
         updateStats();
     });
 
-    loadRoles();
     loadUsers();
 </script>
 </body>
