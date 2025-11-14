@@ -13,10 +13,7 @@ import com.fooddelivery.delivery.entity.Order.OrderStatus;
 import com.fooddelivery.delivery.entity.OrderItem;
 import com.fooddelivery.delivery.entity.Restaurant;
 import com.fooddelivery.delivery.entity.User;
-import com.fooddelivery.delivery.repository.MenuItemRepository;
-import com.fooddelivery.delivery.repository.OrderRepository;
-import com.fooddelivery.delivery.repository.RestaurantRepository;
-import com.fooddelivery.delivery.repository.UserRepository;
+import com.fooddelivery.delivery.repository.*;
 
 @Service
 public class OrderService {
@@ -32,6 +29,9 @@ public class OrderService {
 
     @Autowired
     private MenuItemRepository menuItemRepository;
+
+    @Autowired
+    private PaymentRepository paymentRepository;
 
  //  Tạo đơn hàng
     	public Order createOrder(OrderRequest request) {
@@ -99,11 +99,68 @@ public class OrderService {
         return orderRepository.countByRestaurant_Id(restaurantId);
     }
 
-    //  Cập nhật trạng thái đơn hàng
-    public Order updateStatus(Long orderId, OrderStatus status) {
+    /**
+     * Cập nhật trạng thái đơn hàng với validation
+     * Luồng: PENDING → CONFIRMED → DELIVERING → COMPLETED
+     * Cho phép hủy (CANCELED) khi: PENDING hoặc DELIVERING
+     * PENDING → CONFIRMED yêu cầu Payment đã COMPLETED
+     */
+    public Order updateStatus(Long orderId, OrderStatus newStatus) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng cần cập nhật!"));
-        order.setStatus(status);
+        
+        OrderStatus currentStatus = order.getStatus();
+        
+        // ✅ Kiểm tra đặc biệt: PENDING → CONFIRMED cần Payment COMPLETED
+        if (currentStatus == OrderStatus.PENDING && newStatus == OrderStatus.CONFIRMED) {
+            boolean hasCompletedPayment = paymentRepository.existsByOrderIdAndStatus(
+                orderId, 
+                com.fooddelivery.delivery.entity.Payment.PaymentStatus.COMPLETED
+            );
+            
+            if (!hasCompletedPayment) {
+                throw new RuntimeException(
+                    "Không thể xác nhận đơn hàng! Khách hàng chưa thanh toán (Payment status phải là COMPLETED)."
+                );
+            }
+        }
+        
+        // Kiểm tra xem có thể chuyển sang trạng thái mới không
+        if (!order.canTransitionTo(newStatus)) {
+            String errorMessage;
+            
+            // Tạo message lỗi chi tiết theo từng trường hợp
+            if (newStatus == OrderStatus.CANCELED) {
+                if (currentStatus == OrderStatus.CONFIRMED) {
+                    errorMessage = "Không thể hủy đơn hàng đã xác nhận! Nhà hàng đang chuẩn bị món ăn.";
+                } else if (currentStatus == OrderStatus.COMPLETED) {
+                    errorMessage = "Không thể hủy đơn hàng đã hoàn thành!";
+                } else if (currentStatus == OrderStatus.CANCELED) {
+                    errorMessage = "Đơn hàng đã bị hủy rồi!";
+                } else {
+                    errorMessage = "Không thể hủy đơn hàng ở trạng thái: " + currentStatus;
+                }
+            } else if (currentStatus == OrderStatus.COMPLETED) {
+                errorMessage = "Đơn hàng đã hoàn thành, không thể chuyển sang trạng thái khác!";
+            } else if (currentStatus == OrderStatus.CANCELED) {
+                errorMessage = "Đơn hàng đã bị hủy, không thể chuyển sang trạng thái khác!";
+            } else if (currentStatus == OrderStatus.PENDING && newStatus == OrderStatus.DELIVERING) {
+                errorMessage = "Không thể chuyển từ PENDING sang DELIVERING! Phải xác nhận đơn (CONFIRMED) trước.";
+            } else if (currentStatus == OrderStatus.PENDING && newStatus == OrderStatus.COMPLETED) {
+                errorMessage = "Không thể hoàn thành đơn hàng chưa xác nhận! Luồng: PENDING → CONFIRMED → DELIVERING → COMPLETED.";
+            } else if (currentStatus == OrderStatus.CONFIRMED && newStatus == OrderStatus.COMPLETED) {
+                errorMessage = "Không thể hoàn thành đơn hàng chưa giao! Phải chuyển sang DELIVERING trước.";
+            } else {
+                errorMessage = String.format(
+                    "Không thể chuyển trạng thái từ '%s' sang '%s'.",
+                    currentStatus, newStatus
+                );
+            }
+            
+            throw new RuntimeException(errorMessage);
+        }
+        
+        order.setStatus(newStatus);
         return orderRepository.save(order);
     }
 

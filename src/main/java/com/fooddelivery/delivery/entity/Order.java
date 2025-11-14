@@ -40,13 +40,51 @@ public class Order {
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> items;
     
-    // Enum trạng thái đơn hàng
     public enum OrderStatus {
         PENDING,     // Chưa xác nhận
         CONFIRMED,   // Đã xác nhận
         DELIVERING,  // Đang giao
         COMPLETED,   // Hoàn thành
         CANCELED     // Hủy
+    }
+    
+    /**
+     * Kiểm tra xem có thể chuyển sang trạng thái mới không
+     * Luồng: PENDING → CONFIRMED → DELIVERING → COMPLETED
+     * Cho phép hủy (CANCELED) khi: PENDING hoặc DELIVERING
+     */
+    public boolean canTransitionTo(OrderStatus newStatus) {
+        // Không thể chuyển sang chính nó
+        if (this.status == newStatus) {
+            return false;
+        }
+        
+        // Đã hoàn thành hoặc đã hủy thì không thể chuyển nữa
+        if (this.status == OrderStatus.COMPLETED || this.status == OrderStatus.CANCELED) {
+            return false;
+        }
+        
+        // Kiểm tra luồng chuyển trạng thái hợp lệ
+        switch (this.status) {
+            case PENDING:
+                // PENDING có thể → CONFIRMED hoặc CANCELED (khách hủy trước khi xác nhận)
+                return newStatus == OrderStatus.CONFIRMED || newStatus == OrderStatus.CANCELED;
+                
+            case CONFIRMED:
+                // CONFIRMED chỉ có thể → DELIVERING (không cho hủy sau khi xác nhận)
+                return newStatus == OrderStatus.DELIVERING;
+                
+            case DELIVERING:
+                // DELIVERING có thể → COMPLETED hoặc CANCELED
+                return newStatus == OrderStatus.COMPLETED || newStatus == OrderStatus.CANCELED;
+                
+            default:
+                return false;
+        }
+    }
+    
+    public boolean isCancelable() {
+        return this.status == OrderStatus.PENDING || this.status == OrderStatus.DELIVERING;
     }
 
 	public Long getId() {
