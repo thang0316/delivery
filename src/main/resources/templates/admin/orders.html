@@ -60,7 +60,7 @@
                 </select>
             </div>
 
-            <div class="col-md-2"><input id="quantity" type="number" min="1" value="1" class="form-control" placeholder="Số lượng"></div>
+            <div class="col-md-2"><input id="quantity" type="number" min="1" value="1" class="form-control"></div>
 
             <div class="col-md-3"><button class="btn btn-gradient w-100" onclick="createOrder()">Thêm đơn</button></div>
         </div>
@@ -92,9 +92,8 @@
         try {
             const res = await fetch(`${API_BASE}/users`);
             const users = await res.json();
-            document.getElementById("userSelect").innerHTML = users
-                .map(u => `<option value="${u.id}">${u.username} (${u.id})</option>`)
-                .join("");
+            document.getElementById("userSelect").innerHTML =
+                users.map(u => `<option value="${u.id}">${u.username} (${u.id})</option>`).join("");
         } catch {
             document.getElementById("userSelect").innerHTML = `<option disabled>Lỗi tải người dùng</option>`;
         }
@@ -105,9 +104,8 @@
         try {
             const res = await fetch(`${API_BASE}/restaurants`);
             const restaurants = await res.json();
-            document.getElementById("restaurantSelect").innerHTML = restaurants
-                .map(r => `<option value="${r.id}">${r.name} (${r.id})</option>`)
-                .join("");
+            document.getElementById("restaurantSelect").innerHTML =
+                restaurants.map(r => `<option value="${r.id}">${r.name} (${r.id})</option>`).join("");
         } catch {
             document.getElementById("restaurantSelect").innerHTML = `<option disabled>Lỗi tải nhà hàng</option>`;
         }
@@ -118,18 +116,18 @@
         try {
             const res = await fetch(`${API_BASE}/menu-items`);
             menuItems = await res.json();
-            document.getElementById("menuSelect").innerHTML = menuItems
-                .map(m => `<option value="${m.id}">${m.name} - ${m.price}₫</option>`)
-                .join("");
+            document.getElementById("menuSelect").innerHTML =
+                menuItems.map(m => `<option value="${m.id}">${m.name} - ${Number(m.price).toLocaleString()}₫</option>`).join("");
         } catch {
             document.getElementById("menuSelect").innerHTML = `<option disabled>Lỗi tải món ăn</option>`;
         }
     }
 
-    // 🟢 Load đơn hàng
+    // 🟢 Load đơn hàng — FIX FULL NULL SAFE
     async function loadOrders() {
         const tbody = document.querySelector("#orderTable tbody");
         tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">Đang tải...</td></tr>`;
+
         try {
             const res = await fetch(`${API_BASE}/orders`);
             const orders = await res.json();
@@ -139,27 +137,35 @@
                 return;
             }
 
-            tbody.innerHTML = orders.map(o => `
-        <tr>
-          <td>${o.id}</td>
-          <td>${o.customerName || o.customer?.username}</td>
-          <td>${o.restaurant?.name}</td>
-          <td>${o.totalAmount?.toLocaleString() || 0}₫</td>
-          <td>
-            <span class="badge-status ${
-                o.status === 'COMPLETED' ? 'badge-completed' :
-                    o.status === 'CANCELLED' ? 'badge-cancelled' :
-                        'badge-pending'
-            }">${o.status || 'PENDING'}</span>
-          </td>
-          <td>
-            <button class="btn btn-sm btn-outline-success" onclick="updateStatus(${o.id}, 'COMPLETED')"><i class="bi bi-check2-circle"></i></button>
-            <button class="btn btn-sm btn-outline-danger" onclick="updateStatus(${o.id}, 'CANCELLED')"><i class="bi bi-x-circle"></i></button>
-            <button class="btn btn-sm btn-outline-secondary" onclick="deleteOrder(${o.id})"><i class="bi bi-trash"></i></button>
-          </td>
-        </tr>
-      `).join("");
-        } catch {
+            tbody.innerHTML = orders.map(o => {
+                const total = Number(o.totalAmount || 0).toLocaleString();
+
+                return `
+                <tr>
+                    <td>${o.id}</td>
+                    <td>${o.customerName || o.customer?.username || "Không rõ"}</td>
+                    <td>${o.restaurant?.name || "—"}</td>
+                    <td>${total}₫</td>
+                    <td>
+                        <span class="badge-status ${
+                            o.status === 'COMPLETED' ? 'badge-completed' :
+                            o.status === 'CANCELLED' ? 'badge-cancelled' : 'badge-pending'
+                        }">${o.status || 'PENDING'}</span>
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-success" onclick="updateStatus(${o.id}, 'COMPLETED')">
+                            <i class="bi bi-check2-circle"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="updateStatus(${o.id}, 'CANCELLED')">
+                            <i class="bi bi-x-circle"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="deleteOrder(${o.id})">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                </tr>`;
+            }).join("");
+        } catch (err) {
             tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger">Lỗi tải đơn hàng!</td></tr>`;
         }
     }
@@ -188,15 +194,15 @@
             items: [{ menuItemId, quantity }]
         };
 
-        console.log("📤 Gửi request:", data);
-
         try {
             const res = await fetch(`${API_BASE}/orders`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(data)
             });
+
             if (!res.ok) throw new Error(await res.text());
+
             alert("✅ Đơn hàng đã được tạo thành công!");
             loadOrders();
         } catch (err) {
@@ -237,5 +243,6 @@
         await loadOrders();
     })();
 </script>
+
 </body>
 </html>

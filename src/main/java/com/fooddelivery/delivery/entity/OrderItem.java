@@ -1,69 +1,42 @@
 package com.fooddelivery.delivery.entity;
 
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 
 @Entity
 @Table(name = "order_items")
 public class OrderItem {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Số lượng món
-    private int quantity;
+    private Integer quantity;
+    private Double price;
 
-    // Giá tại thời điểm đặt (tránh trường hợp sau này menu đổi giá)
-    private double price;
-
-    // Liên kết với đơn hàng
     @ManyToOne
-    @JoinColumn(name = "order_id", nullable = false)
+    @JoinColumn(name = "order_id")
+    @JsonBackReference
     private Order order;
 
-    // Liên kết với món ăn trong menu
     @ManyToOne
-    @JoinColumn(name = "menu_item_id", nullable = false)
+    @JoinColumn(name = "menu_item_id")
     private MenuItem menuItem;
 
-	public Long getId() {
-		return id;
-	}
+    // Getter – Setter giữ nguyên format
 
-	public void setId(Long id) {
-		this.id = id;
-	}
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-	public int getQuantity() {
-		return quantity;
-	}
+    public Integer getQuantity() { return quantity; }
+    public void setQuantity(Integer quantity) { this.quantity = quantity; }
 
-	public void setQuantity(int quantity) {
-		this.quantity = quantity;
-	}
+    public Double getPrice() { return price; }
+    public void setPrice(Double price) { this.price = price; }
 
-	public double getPrice() {
-		return price;
-	}
+    public Order getOrder() { return order; }
+    public void setOrder(Order order) { this.order = order; }
 
-	public void setPrice(double price) {
-		this.price = price;
-	}
-
-	public Order getOrder() {
-		return order;
-	}
-
-	public void setOrder(Order order) {
-		this.order = order;
-	}
-
-	public MenuItem getMenuItem() {
-		return menuItem;
-	}
-
-	public void setMenuItem(MenuItem menuItem) {
-		this.menuItem = menuItem;
-	}
-
-    
+    public MenuItem getMenuItem() { return menuItem; }
+    public void setMenuItem(MenuItem menuItem) { this.menuItem = menuItem; }
 }

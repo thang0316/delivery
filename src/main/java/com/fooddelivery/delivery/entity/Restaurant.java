@@ -2,7 +2,6 @@ package com.fooddelivery.delivery.entity;
 
 import java.time.LocalDateTime;
 import jakarta.persistence.*;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
@@ -25,7 +24,8 @@ public class Restaurant {
 
     @OneToOne
     @JoinColumn(name = "owner_id", nullable = false)
-    @JsonIgnore  // ⭐ FIX LỖI 500 (vòng lặp JSON)
+    @JsonIgnoreProperties({"password", "email", "phone", "role", "createdAt"})
+    // ⭐ ẨN field nhạy cảm → Giữ lại owner.id để frontend sử dụng
     private User owner;
 
     @Column(nullable = false)
@@ -38,67 +38,27 @@ public class Restaurant {
     private Boolean active = true;
 
     // ===== Getter & Setter =====
-    public String getId() {
-        return id;
-    }
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
 
-    public void setId(String id) {
-        this.id = id;
-    }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
 
-    public String getName() {
-        return name;
-    }
+    public String getAddress() { return address; }
+    public void setAddress(String address) { this.address = address; }
 
-    public void setName(String name) {
-        this.name = name;
-    }
+    public String getPhone() { return phone; }
+    public void setPhone(String phone) { this.phone = phone; }
 
-    public String getAddress() {
-        return address;
-    }
+    public User getOwner() { return owner; }
+    public void setOwner(User owner) { this.owner = owner; }
 
-    public void setAddress(String address) {
-        this.address = address;
-    }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 
-    public String getPhone() {
-        return phone;
-    }
+    public Double getRating() { return rating; }
+    public void setRating(Double rating) { this.rating = rating; }
 
-    public void setPhone(String phone) {
-        this.phone = phone;
-    }
-
-    public User getOwner() {
-        return owner;
-    }
-
-    public void setOwner(User owner) {
-        this.owner = owner;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Double getRating() {
-        return rating;
-    }
-
-    public void setRating(Double rating) {
-        this.rating = rating;
-    }
-
-    public Boolean getActive() {
-        return active;
-    }
-
-    public void setActive(Boolean active) {
-        this.active = active;
-    }
+    public Boolean getActive() { return active; }
+    public void setActive(Boolean active) { this.active = active; }
 }
