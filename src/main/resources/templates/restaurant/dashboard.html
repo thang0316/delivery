@@ -53,6 +53,7 @@
     <a href="/restaurant/dashboard">🏠 Dashboard</a>
     <a href="/restaurant/menu">🍕 Menu</a>
     <a href="/restaurant/orders">📦 Đơn hàng</a>
+    <a href="/restaurant/drones"> Drone</a>
     <a href="/restaurant/payments">💳 Thanh toán</a>
     <a href="/restaurant/profile">👤 Hồ sơ</a>
 </div>
@@ -78,7 +79,7 @@
 
         <div class="col-4">
             <div class="card-box">
-                <h4>💰 Thu nhập hôm nay</h4>
+                <h4>💰 Doanh thu</h4>
                 <h2 id="revenueToday">0 ₫</h2>
             </div>
         </div>
@@ -86,24 +87,45 @@
 </div>
 
 
-<!-- JS giữ nguyên -->
+<!-- JS đã FIX -->
 <script>
+
     const restaurantId = localStorage.getItem("restaurantId");
 
+    /* =============================
+       Tổng đơn hàng  (GIỮ NGUYÊN)
+    ==============================*/
     fetch(`http://localhost:8080/api/orders/restaurant/${restaurantId}/count`)
         .then(r => r.json())
         .then(count => document.getElementById("orderCount").innerText = count)
         .catch(err => console.error("Lỗi load tổng đơn hàng:", err));
 
-    fetch(`http://localhost:8080/api/drones/active/${restaurantId}`)
+    /* =====================================
+       Drone hoạt động  – ĐÃ FIX 404
+       - Backend KHÔNG CÓ /active/{id}
+       - Dùng /restaurant/{id}
+       - Đếm số drone đang AVAILABLE
+    ======================================*/
+    fetch(`http://localhost:8080/api/drones/restaurant/${restaurantId}`)
         .then(r => r.json())
-        .then(active => document.getElementById("droneActive").innerText = active)
+        .then(drones => {
+            const activeCount = drones.filter(d => d.status === "AVAILABLE").length;
+            document.getElementById("droneActive").innerText = activeCount;
+        })
         .catch(err => console.error("Lỗi load drone:", err));
 
-    fetch(`http://localhost:8080/api/payments/restaurant/${restaurantId}/today`)
+    /* =====================================
+       Doanh thu – ĐÃ FIX 404
+       Đổi /today → /total theo yêu cầu
+    ======================================*/
+    fetch(`http://localhost:8080/api/payments/restaurant/${restaurantId}/total`)
         .then(r => r.json())
-        .then(money => document.getElementById("revenueToday").innerText = money.toLocaleString("vi-VN") + " ₫")
+        .then(money => {
+            document.getElementById("revenueToday").innerText =
+                money.toLocaleString("vi-VN") + " ₫";
+        })
         .catch(err => console.error("Lỗi load doanh thu:", err));
+
 </script>
 
 </body>

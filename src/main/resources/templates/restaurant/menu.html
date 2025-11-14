@@ -15,7 +15,11 @@
         .sidebar a { color: white; padding: 12px 18px; display: block; text-decoration: none; }
         .sidebar a:hover { background: rgba(255,255,255,0.2); }
         .content-area { margin-left: 240px; padding: 20px; }
-        img.menu-thumb { width: 55px; height: 55px; object-fit: cover; border-radius: 6px; }
+        img.menu-thumb {
+            width: 55px; height: 55px;
+            object-fit: cover;
+            border-radius: 6px;
+        }
     </style>
 </head>
 
@@ -75,7 +79,7 @@
     let restaurantId = null;
 
     /* ===================================================
-         1) Lấy restaurantId từ danh sách restaurants
+         1) Lấy restaurantId
     =================================================== */
     async function loadRestaurant() {
 
@@ -89,14 +93,13 @@
 
         const ownerId = user.id;
 
-        // 🔥 LẤY TOÀN BỘ RESTAURANTS RỒI LỌC
         const res = await fetch("http://localhost:8080/api/restaurants");
         const restaurants = await res.json();
 
         const myRestaurant = restaurants.find(r => r.owner.id === ownerId);
 
         if (!myRestaurant) {
-            alert("❌ Tài khoản của bạn chưa có nhà hàng!\n→ Hãy tạo nhà hàng trước.");
+            alert("❌ Tài khoản của bạn chưa có nhà hàng!");
             return;
         }
 
@@ -117,10 +120,15 @@
 
                 list.filter(m => m.restaurant.id === restaurantId)
                     .forEach(m => {
+
+                        const imgTag = m.imageUrl
+                            ? `<img src="/images/${m.imageUrl}" class="menu-thumb" onerror="this.style.display='none';">`
+                            : `<span class='text-muted'>Không có ảnh</span>`;
+
                         table.innerHTML += `
                         <tr>
                             <td>${m.id}</td>
-                            <td><img src="${m.imageUrl || '/default-food.png'}" class="menu-thumb"></td>
+                            <td>${imgTag}</td>
                             <td>${m.name}</td>
                             <td>${m.price} ₫</td>
                             <td>${m.description}</td>
@@ -141,7 +149,7 @@
     }
 
     /* ===================================================
-         4) Thêm món
+         4) Thêm món (KHÔNG dùng blob, chỉ lấy TÊN FILE)
     =================================================== */
     async function addMenu() {
 
@@ -149,7 +157,7 @@
         let imageUrl = null;
 
         if (fileInput.files.length > 0) {
-            imageUrl = URL.createObjectURL(fileInput.files[0]);
+            imageUrl = fileInput.files[0].name;  // chỉ tên file
         }
 
         const item = {
