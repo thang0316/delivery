@@ -5,30 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="2d90ef43-060f-4a2e-852b-9e30b95e91be" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/resources/templates/restaurant/drones.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/fooddelivery/delivery/repository/PaymentRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/fooddelivery/delivery/repository/PaymentRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/application.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/application.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/static/images/7 up.jpg" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/static/images/7_up.jpg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/static/images/bún bò 1.jpg" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/static/images/bun_bo1.jpg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/static/images/bún bò 2.jpg" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/static/images/bun_bo2.jpg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/static/images/bún bò 3.jpg" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/static/images/bun_bo3.jpg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/static/images/gà rán 1.jpg" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/static/images/ga_ran1.jpg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/static/images/gà rán 2.jpg" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/static/images/ga_ran2.jpg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/static/images/khoai tây chiên 1.jpg" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/static/images/khoai_tay1.jpg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/static/images/khoai tây chiên 2.jpg" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/static/images/khoai_tay2.jpg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/static/images/khoai tây chiên 3.jpg" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/static/images/khoai_tay3.jpg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/static/images/mì cay bò.jpg" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/static/images/mi_cay_bo.jpg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/static/images/mì cay chả cá.jpg" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/static/images/mi_cay_cha_ca.jpg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/static/images/mì cay hải sản.jpg" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/static/images/mi_cay_hai_san.jpg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/static/images/mì cay đùi gà.jpg" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/static/images/mi_cay_dui_ga.jpg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/static/images/phở bò 1.jpg" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/static/images/pho1.jpg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/static/images/phở bò 2.jpg" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/static/images/pho2.jpg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/static/images/tôm chiên bột 1.jpg" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/static/images/tom1.jpg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/static/images/tôm chiên bột 2.jpg" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/static/images/tom2.jpg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/templates/restaurant/dashboard.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/templates/restaurant/dashboard.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/templates/restaurant/layout.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/templates/restaurant/layout.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/templates/restaurant/menu.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/templates/restaurant/menu.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/templates/Customer/dashboard.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/templates/Customer/dashboard.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/templates/Customer/menu.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/templates/Customer/menu.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -38,8 +17,10 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="Class" />
         <option value="HTML File" />
+        <option value="Class" />
+        <option value="Spring Component" />
+        <option value="Kotlin Interface" />
       </list>
     </option>
   </component>
@@ -144,7 +125,7 @@
       <workItem from="1763051560011" duration="7106000" />
       <workItem from="1763108036495" duration="1423000" />
       <workItem from="1763109867929" duration="14766000" />
-      <workItem from="1763138661984" duration="3693000" />
+      <workItem from="1763138661984" duration="9163000" />
     </task>
     <servers />
   </component>
