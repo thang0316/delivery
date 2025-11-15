@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lỗi thanh toán</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .result-container {
+            background: white;
+            padding: 50px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+        .error-icon {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: #ff9800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 30px;
+        }
+        .error-icon svg {
+            width: 50px;
+            height: 50px;
+            fill: white;
+        }
+        h1 {
+            color: #ff9800;
+            margin-bottom: 20px;
+        }
+        .error-message {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 30px 0;
+            text-align: left;
+        }
+        .btn-home {
+            background: #ff9800;
+            color: white;
+            padding: 12px 40px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s;
+        }
+        .btn-home:hover {
+            background: #f57c00;
+            color: white;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="result-container">
+        <div class="error-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
+            </svg>
+        </div>
+        
+        <h1>⚠️ Có lỗi xảy ra</h1>
+        <p class="text-muted">Không thể xử lý thanh toán của bạn</p>
+        
+        <div class="error-message">
+            <h5>Chi tiết lỗi:</h5>
+            <p id="errorMessage" class="mb-0 text-danger">Đã xảy ra lỗi không xác định</p>
+        </div>
+        
+        <div class="alert alert-info">
+            <strong>💡 Gợi ý:</strong>
+            <ul class="text-start mb-0">
+                <li>Kiểm tra kết nối internet</li>
+                <li>Thử lại sau vài phút</li>
+                <li>Liên hệ hỗ trợ nếu lỗi vẫn tiếp diễn</li>
+            </ul>
+        </div>
+        
+        <a href="/payment/vnpay-test" class="btn-home">Thử lại</a>
+        <br><br>
+        <a href="/" class="text-muted" style="font-size: 14px;">Về trang chủ</a>
+    </div>
+    
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const errorMessage = urlParams.get('message');
+        
+        if (errorMessage) {
+            document.getElementById('errorMessage').textContent = decodeURIComponent(errorMessage);
+        }
+    </script>
+</body>
+</html>
