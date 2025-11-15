@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thanh toán thất bại</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .result-container {
+            background: white;
+            padding: 50px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+        .failed-icon {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: #dc3545;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 30px;
+            animation: shake 0.5s;
+        }
+        .failed-icon svg {
+            width: 50px;
+            height: 50px;
+            fill: white;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+        h1 {
+            color: #dc3545;
+            margin-bottom: 20px;
+        }
+        .order-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 30px 0;
+            text-align: left;
+        }
+        .order-info p {
+            margin: 10px 0;
+            font-size: 16px;
+        }
+        .btn-retry {
+            background: #dc3545;
+            color: white;
+            padding: 12px 40px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s;
+            margin: 5px;
+        }
+        .btn-retry:hover {
+            background: #c82333;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .btn-home {
+            background: #6c757d;
+            color: white;
+            padding: 12px 40px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s;
+            margin: 5px;
+        }
+        .btn-home:hover {
+            background: #5a6268;
+            color: white;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="result-container">
+        <div class="failed-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/>
+            </svg>
+        </div>
+        
+        <h1>❌ Thanh toán thất bại</h1>
+        <p class="text-muted">Giao dịch của bạn không thành công</p>
+        
+        <div class="order-info">
+            <h5>📦 Thông tin đơn hàng</h5>
+            <p><strong>Mã đơn hàng:</strong> <span id="orderId">...</span></p>
+            <p><strong>Trạng thái:</strong> <span class="badge bg-danger">Thanh toán thất bại</span></p>
+            <p><strong>Thời gian:</strong> <span id="currentTime">...</span></p>
+        </div>
+        
+        <div class="alert alert-warning">
+            <strong>⚠️ Có thể do:</strong>
+            <ul class="text-start mb-0">
+                <li>Số dư tài khoản không đủ</li>
+                <li>Thông tin thẻ không chính xác</li>
+                <li>Bạn đã hủy giao dịch</li>
+                <li>Vượt quá thời gian thanh toán</li>
+            </ul>
+        </div>
+        
+        <a href="/payment/vnpay-test" class="btn-retry">🔄 Thử lại</a>
+        <a href="/" class="btn-home">🏠 Về trang chủ</a>
+    </div>
+    
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const orderId = urlParams.get('orderId');
+        
+        if (orderId) {
+            document.getElementById('orderId').textContent = orderId;
+        }
+        
+        const now = new Date();
+        const timeString = now.toLocaleString('vi-VN', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
+        document.getElementById('currentTime').textContent = timeString;
+    </script>
+</body>
+</html>
