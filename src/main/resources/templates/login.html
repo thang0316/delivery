@@ -60,10 +60,11 @@
     </p>
 </div>
 
+
 <script>
     async function login() {
-        const username = document.getElementById("username").value;
-        const password = document.getElementById("password").value;
+        const username = document.getElementById("username").value.trim();
+        const password = document.getElementById("password").value.trim();
         const errorMsg = document.getElementById("error-msg");
 
         try {
@@ -78,88 +79,71 @@
                 return;
             }
 
-            // ============================
-            // ⭐ USER LOGIN DEBUG
-            // ============================
             const user = await response.json();
+            const role = user.role?.name;
+
             console.log("===== USER LOGIN DATA =====");
-            console.log("User object:", user);
-            console.log("User.id =", user.id);
-            console.log("User.role =", user.role?.name);
+            console.log(user);
 
-            localStorage.setItem("loggedInUser", JSON.stringify(user));
-            const role = user.role.name;
+            // ==================================================
+            // ⭐ LƯU USER DÙNG CHUNG CHO TOÀN HỆ THỐNG
+            // ==================================================
+            localStorage.setItem("user", JSON.stringify(user));          // format mới
+            localStorage.setItem("loggedInUser", JSON.stringify(user));  // format cũ (customer dùng)
+            localStorage.setItem("userId", String(user.id));
 
+            // ==================================================
+            // ⭐ ADMIN
+            // ==================================================
             if (role === "ADMIN") {
                 window.location.href = "/admin/dashboard";
                 return;
             }
 
-            // ============================================================
-            // ⭐ ROLE RESTAURANT → TÌM NHÀ HÀNG CỦA USER (OWNER)
-            // ============================================================
+            // ==================================================
+            // ⭐ RESTAURANT OWNER
+            // ==================================================
             if (role === "RESTAURANT") {
 
-                console.log("===== FETCH RESTAURANTS =====");
                 const res = await fetch("/api/restaurants");
                 const restaurants = await res.json();
 
-                console.log("🔥 Restaurants list từ backend:", restaurants);
-
-                // In từng restaurant để kiểm tra owner.id
-                restaurants.forEach((r, index) => {
-                    console.log(`---- RESTAURANT #${index + 1} ----`);
-                    console.log("Restaurant.id  =", r.id);
-                    console.log("Restaurant.name =", r.name);
-                    console.log("Restaurant.owner =", r.owner);
-                    console.log("Restaurant.owner?.id =", r.owner?.id);
-                    console.log("----------------------------------");
-                });
-
-                // ================================
-                // ⭐ So sánh owner.id === user.id
-                // ================================
+                // tìm nhà hàng của user theo owner.id
                 const myRestaurant = restaurants.find(r =>
                     r.owner?.id &&
                     String(r.owner.id).trim() === String(user.id).trim()
                 );
 
-                console.log("===== KẾT QUẢ SO SÁNH =====");
-                console.log("User.id =", user.id);
-                console.log("Restaurant tìm được =", myRestaurant);
-
                 if (!myRestaurant) {
-                    errorMsg.textContent =
-                        "⚠ Tài khoản RESTAURANT nhưng KHÔNG tìm thấy nhà hàng!\n" +
-                        "→ Xem console để kiểm tra owner.id backend trả về.";
+                    errorMsg.textContent = "⚠ Không tìm thấy nhà hàng thuộc tài khoản này!";
                     return;
                 }
 
-                // ⭐ LƯU ID NHÀ HÀNG
-                localStorage.setItem("restaurantId", myRestaurant.id);
-
-                console.log("===== SAVED restaurantId =====");
-                console.log("restaurantId =", myRestaurant.id);
+                // Lưu id nhà hàng
+                localStorage.setItem("restaurantId", String(myRestaurant.id));
 
                 window.location.href = "/restaurant/dashboard";
                 return;
             }
 
+            // ==================================================
+            // ⭐ CUSTOMER
+            // ==================================================
             if (role === "CUSTOMER") {
+                console.log("➡ CUSTOMER LOGIN OK");
                 window.location.href = "/customer/dashboard";
                 return;
             }
 
-            errorMsg.textContent = "Không xác định được vai trò!";
+            // ==================================================
+            errorMsg.textContent = "Không xác định vai trò tài khoản!";
 
         } catch (err) {
-            console.log("===== ERROR =====");
-            console.error(err);
+            console.error("Login Exception:", err);
             errorMsg.textContent = "Lỗi kết nối server!";
         }
     }
 </script>
-
 
 </body>
 </html>

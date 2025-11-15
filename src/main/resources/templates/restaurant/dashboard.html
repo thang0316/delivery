@@ -2,130 +2,97 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Restaurant Dashboard</title>
+    <title>Dashboard | Restaurant</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <style>
-        body { background: #f4f6f9; }
+        body { background: #eef2f5; font-family: "Segoe UI"; }
 
-        /* Sidebar cố định bên trái */
         .sidebar {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 220px;
-            height: 100vh;
+            top: 0; left: 0;
+            width: 220px; height: 100vh;
             background: #198754;
             padding-top: 20px;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.15);
         }
-
         .sidebar a {
-            color: white;
-            padding: 12px 18px;
-            display: block;
-            text-decoration: none;
+            color: white; text-decoration:none;
+            padding: 14px 20px; display:block;
             font-weight: 500;
         }
+        .sidebar a:hover { background: rgba(255,255,255,0.18); }
 
-        .sidebar a:hover {
-            background: rgba(255,255,255,0.2);
-        }
-
-        /* Nội dung đẩy sang phải  */
-        .content-area {
-            margin-left: 240px;
-            padding: 20px;
-        }
-
-        .card-box {
-            padding: 25px;
-            border-radius: 12px;
-            background: white;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
-        }
+        .content { margin-left: 240px; padding: 25px; }
+        .card-box { padding:25px; border-radius:12px; background:white; box-shadow:0 3px 10px rgba(0,0,0,0.08); }
     </style>
 </head>
-
 <body>
 
-<!-- Sidebar giữ nguyên -->
 <div class="sidebar">
     <a href="/restaurant/dashboard">🏠 Dashboard</a>
     <a href="/restaurant/menu">🍕 Menu</a>
     <a href="/restaurant/orders">📦 Đơn hàng</a>
-    <a href="/restaurant/drones"> Drone</a>
+    <a href="/restaurant/drones">🛩 Drone</a>
     <a href="/restaurant/payments">💳 Thanh toán</a>
     <a href="/restaurant/profile">👤 Hồ sơ</a>
 </div>
 
-<!-- Content giữ nguyên logic -->
-<div class="content-area">
-    <h2>Xin chào chủ nhà hàng!</h2>
+<div class="content">
+    <h2>🏠 Dashboard Nhà hàng</h2>
 
     <div class="row mt-4">
-        <div class="col-4">
-            <div class="card-box">
-                <h4>📦 Tổng đơn hàng</h4>
-                <h2 id="orderCount" class="mt-2">0</h2>
-            </div>
-        </div>
+        <div class="col-4"><div class="card-box">
+            <h5>📦 Tổng đơn</h5>
+            <h2 id="orderCount">0</h2>
+        </div></div>
 
-        <div class="col-4">
-            <div class="card-box">
-                <h4>🛵 Drone hoạt động</h4>
-                <h2 id="droneActive">0</h2>
-            </div>
-        </div>
+        <div class="col-4"><div class="card-box">
+            <h5>🛩 Drone hoạt động</h5>
+            <h2 id="droneActive">0</h2>
+        </div></div>
 
-        <div class="col-4">
-            <div class="card-box">
-                <h4>💰 Doanh thu</h4>
-                <h2 id="revenueToday">0 ₫</h2>
-            </div>
-        </div>
+        <div class="col-4"><div class="card-box">
+            <h5>💰 Doanh thu</h5>
+            <h2 id="revenue">0 ₫</h2>
+        </div></div>
     </div>
 </div>
 
-
-<!-- JS đã FIX -->
 <script>
-
     const restaurantId = localStorage.getItem("restaurantId");
 
-    /* =============================
-       Tổng đơn hàng  (GIỮ NGUYÊN)
-    ==============================*/
-    fetch(`http://localhost:8080/api/orders/restaurant/${restaurantId}/count`)
+    /* ================================
+           1) Tổng đơn hàng
+    ================================= */
+    fetch(`/api/orders`)
         .then(r => r.json())
-        .then(count => document.getElementById("orderCount").innerText = count)
-        .catch(err => console.error("Lỗi load tổng đơn hàng:", err));
+        .then(list => {
+            const myOrders = list.filter(o => o.restaurant.id === restaurantId);
+            orderCount.innerText = myOrders.length;
+        });
 
-    /* =====================================
-       Drone hoạt động  – ĐÃ FIX 404
-       - Backend KHÔNG CÓ /active/{id}
-       - Dùng /restaurant/{id}
-       - Đếm số drone đang AVAILABLE
-    ======================================*/
-    fetch(`http://localhost:8080/api/drones/restaurant/${restaurantId}`)
+    /* ================================
+           2) Drone hoạt động
+    ================================= */
+    fetch(`/api/drones/restaurant/${restaurantId}`)
         .then(r => r.json())
-        .then(drones => {
-            const activeCount = drones.filter(d => d.status === "AVAILABLE").length;
-            document.getElementById("droneActive").innerText = activeCount;
-        })
-        .catch(err => console.error("Lỗi load drone:", err));
+        .then(list => {
+            droneActive.innerText = list.filter(x => x.status === "AVAILABLE").length;
+        });
 
-    /* =====================================
-       Doanh thu – ĐÃ FIX 404
-       Đổi /today → /total theo yêu cầu
-    ======================================*/
-    fetch(`http://localhost:8080/api/payments/restaurant/${restaurantId}/total`)
+    /* ================================
+           3) Doanh thu = Tổng totalAmount
+    ================================= */
+    fetch(`/api/orders`)
         .then(r => r.json())
-        .then(money => {
-            document.getElementById("revenueToday").innerText =
-                money.toLocaleString("vi-VN") + " ₫";
-        })
-        .catch(err => console.error("Lỗi load doanh thu:", err));
+        .then(list => {
+            const myOrders = list.filter(o => o.restaurant.id === restaurantId);
 
+            let totalRevenue = myOrders.reduce((sum, o) => sum + o.totalAmount, 0);
+
+            revenue.innerText = totalRevenue.toLocaleString("vi-VN") + " ₫";
+        });
 </script>
 
 </body>

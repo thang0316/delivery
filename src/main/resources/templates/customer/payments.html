@@ -1,0 +1,60 @@
+<h3>💳 Lịch sử thanh toán</h3>
+
+<div id="paymentBox">Đang tải...</div>
+
+<script>
+    /* ============================
+            LOAD USER FORMAT CŨ
+    ============================= */
+    function getUser(){
+        return JSON.parse(localStorage.getItem("user") || "{}");
+    }
+
+    /* ============================
+              LOAD PAYMENTS
+    ============================= */
+    async function loadPayments(){
+        let user = getUser();
+
+        if(!user.id){
+            paymentBox.innerHTML = "<p class='text-danger'>Không xác định được người dùng!</p>";
+            return;
+        }
+
+        // Lấy danh sách payment có order thuộc user
+        let res = await fetch("/api/payments");
+        let allPayments = await res.json();
+
+        // Lọc theo đúng user
+        let list = allPayments.filter(p =>
+            p.order?.customer?.id === user.id
+        );
+
+        if(list.length === 0){
+            paymentBox.innerHTML = "<p class='text-muted'>Chưa có giao dịch thanh toán.</p>";
+            return;
+        }
+
+        let html = "";
+
+        list.forEach(p=>{
+            let amount = p.amount ? p.amount.toLocaleString() : "0";
+            let created = p.createdAt ? new Date(p.createdAt).toLocaleString("vi-VN") : "Không rõ";
+
+            html += `
+        <div class="border rounded p-3 mb-3">
+            <h5>Payment #${p.id}</h5>
+            <p><b>Đơn hàng:</b> ${p.order?.id || "Không rõ"}</p>
+            <p><b>Phương thức:</b> ${p.method}</p>
+            <p><b>Số tiền:</b> <span class="text-danger fw-bold">${amount}đ</span></p>
+            <p><b>Trạng thái:</b> ${p.status}</p>
+            <p><b>Ngày tạo:</b> ${created}</p>
+        </div>
+        `;
+        });
+
+        paymentBox.innerHTML = html;
+    }
+
+    loadPayments();
+</script>

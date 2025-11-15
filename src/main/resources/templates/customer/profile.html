@@ -1,0 +1,48 @@
+<h3>👤 Tài khoản</h3>
+
+<div id="profileBox">Đang tải...</div>
+
+<script>
+    /* ============================
+          LOAD USER FORMAT CŨ
+    =============================== */
+    function getUser(){
+        return JSON.parse(localStorage.getItem("user") || "{}");
+    }
+
+    /* ============================
+             LOAD PROFILE
+    =============================== */
+    async function loadProfile(){
+        let user = getUser();
+
+        if(!user.id){
+            profileBox.innerHTML = "<p class='text-danger'>Không xác định được người dùng!</p>";
+            return;
+        }
+
+        let r = await fetch(`/api/users/${user.id}`);
+        let u = await r.json();
+
+        profileBox.innerHTML = `
+        <p><b>Họ tên:</b> ${u.firstName || ""} ${u.lastName || ""}</p>
+        <p><b>Email:</b> ${u.email || "—"}</p>
+        <p><b>Số điện thoại:</b> ${u.phone || "—"}</p>
+
+        <button class="btn btn-danger mt-3" onclick="logout()">
+            Đăng xuất
+        </button>
+    `;
+    }
+
+    /* ============================
+                LOGOUT
+    =============================== */
+    function logout(){
+        localStorage.removeItem("user");
+        localStorage.removeItem("cart");
+        window.location.href = "/login";
+    }
+
+    loadProfile();
+</script>

@@ -1,0 +1,54 @@
+<h3>Đơn hàng của bạn</h3>
+
+<div id="ordersBox">Đang tải...</div>
+
+<script>
+    /* ===============================
+           LOAD USER FORMAT CŨ
+    =============================== */
+    function getUser(){
+        return JSON.parse(localStorage.getItem("user") || "{}");
+    }
+
+    /* ===============================
+                LOAD ORDERS
+    =============================== */
+    async function loadOrders(){
+        let user = getUser();
+
+        if(!user.id){
+            ordersBox.innerHTML = "<p class='text-danger'>Không xác định được người dùng!</p>";
+            return;
+        }
+
+        const r = await fetch(`/api/orders/user/${user.id}`);
+        const list = await r.json();
+
+        if(!Array.isArray(list) || list.length === 0){
+            ordersBox.innerHTML = "<p class='text-muted'>Chưa có đơn hàng nào.</p>";
+            return;
+        }
+
+        let html = "";
+
+        list.forEach(o=>{
+            let date = o.createdAt ? new Date(o.createdAt).toLocaleString("vi-VN") : "Không rõ";
+
+            html += `
+        <div class="border rounded p-3 mb-3">
+            <h5>Đơn #${o.id}</h5>
+            <p>📌 Trạng thái:
+                <b class="text-primary">${o.status}</b>
+            </p>
+            <p>💰 Tổng tiền:
+                <b class="text-danger">${o.totalAmount.toLocaleString()}đ</b>
+            </p>
+            <p>🕒 Ngày tạo: ${date}</p>
+        </div>`;
+        });
+
+        ordersBox.innerHTML = html;
+    }
+
+    loadOrders();
+</script>

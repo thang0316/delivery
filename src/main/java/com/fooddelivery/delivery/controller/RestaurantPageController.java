@@ -32,4 +32,9 @@ public class RestaurantPageController {
     public String profile() {
         return "restaurant/profile";
     }
+
+    @GetMapping("/drones")
+    public String drones() {
+        return "restaurant/drones";  // ⭐ Gộp form + danh sách
+    }
 }

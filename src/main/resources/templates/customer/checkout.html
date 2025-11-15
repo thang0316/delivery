@@ -1,0 +1,129 @@
+<h3>Thanh toán đơn hàng</h3>
+
+<div id="checkoutBox">Đang tải...</div>
+
+<script>
+    /* ============================
+          LẤY USER FORMAT ĐÚNG
+    =============================== */
+    function getUser(){
+        return JSON.parse(localStorage.getItem("loggedInUser") || "{}");
+    }
+
+    function getCart(){
+        return JSON.parse(localStorage.getItem("cart") || "[]");
+    }
+
+    /* ============================
+          LOAD USER
+    =============================== */
+    async function loadUser(){
+        let user = getUser();
+
+        if(!user.id){
+            checkoutBox.innerHTML = "<p class='text-danger'>Không tìm thấy tài khoản người dùng!</p>";
+            return null;
+        }
+
+        const res = await fetch(`/api/users/${user.id}`);
+        return await res.json();
+    }
+
+    /* ============================
+          LOAD CHECKOUT PAGE
+    =============================== */
+    async function loadCheckout(){
+        let cart = getCart();
+
+        if(cart.length === 0){
+            checkoutBox.innerHTML = "<p>Giỏ hàng trống.</p>";
+            return;
+        }
+
+        let user = await loadUser();
+        if(!user) return;
+
+        let total = 0;
+        let html = "";
+
+        cart.forEach(i => {
+            total += i.qty * i.price;
+            html += `
+            <div class="border rounded p-2 mb-2 d-flex">
+                <img src="${i.img}" width="65" class="rounded">
+                <div class="ms-2">
+                    <b>${i.name}</b><br>
+                    x${i.qty} — <b>${i.price.toLocaleString()}đ</b>
+                </div>
+            </div>
+        `;
+        });
+
+        html += `
+        <h4 class="text-danger">Tổng: ${total.toLocaleString()}đ</h4>
+
+        <h5 class="mt-3">Thông tin giao hàng</h5>
+        <input id="name" class="form-control mt-2" value="${user.firstName || ""} ${user.lastName || ""}">
+        <input id="phone" class="form-control mt-2" value="${user.phone || ""}" placeholder="Số điện thoại">
+        <input id="addr" class="form-control mt-2" placeholder="Địa chỉ">
+
+        <button onclick="submitOrder(${total})" class="btn btn-danger w-100 mt-3">
+            Đặt hàng
+        </button>
+    `;
+
+        checkoutBox.innerHTML = html;
+    }
+
+    loadCheckout();
+
+    /* ============================
+            SUBMIT ORDER
+    =============================== */
+    async function submitOrder(total){
+        let cart = getCart();
+        let user = getUser();
+
+        if(cart.length === 0){
+            alert("Giỏ hàng trống!");
+            return;
+        }
+
+        let restaurantId = cart[0].restaurantId;
+
+        let payload = {
+            userId: user.id,
+            restaurantId: restaurantId,
+            customerName: document.getElementById("name").value,
+            customerPhone: document.getElementById("phone").value,
+            customerAddress: document.getElementById("addr").value,
+
+            items: cart.map(i => ({
+                menuItemId: Number(i.id),
+                quantity: i.qty
+            }))
+        };
+
+        const res = await fetch("/api/orders", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(payload)
+        });
+
+        const order = await res.json();
+
+        await fetch("/api/payments", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                orderId: order.id,
+                method: "CASH"
+            })
+        });
+
+        localStorage.removeItem("cart");
+
+        alert("Đặt hàng thành công!");
+        switchPage("orders");
+    }
+</script>
