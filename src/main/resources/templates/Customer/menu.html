@@ -1,54 +1,264 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Menu</title>
-    <link rel="stylesheet" href="/css/customer.css">
-</head>
-<body>
+<!-- MENU PAGE -->
+<style>
+    .menu-title {
+        text-align: center;
+        font-size: 32px;
+        font-family: "Georgia", serif;
+        margin-bottom: 25px;
+    }
 
-<header>
-    <h2>Menu món ăn</h2>
-    <nav>
-        <a href="/customer/cart">Giỏ hàng</a>
-        <a href="/customer/orders">Đơn hàng</a>
-    </nav>
-</header>
+    .menu-filter {
+        text-align: center;
+        margin-bottom: 25px;
+    }
 
-<div class="container">
-    <div id="menuList" class="menu-grid"></div>
+    .menu-filter button {
+        border: none;
+        background: #f2f2f2;
+        padding: 10px 20px;
+        margin: 5px;
+        border-radius: 20px;
+        font-size: 15px;
+        cursor: pointer;
+        transition: 0.25s;
+    }
+
+    .menu-filter button.active,
+    .menu-filter button:hover {
+        background: #d62828;
+        color: white;
+    }
+
+    .food-card {
+        background: #fff;
+        padding: 15px;
+        border-radius: 14px;
+        box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+        transition: 0.25s;
+        text-align: center;
+        margin-bottom: 25px;
+        cursor: pointer;
+    }
+
+    .food-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 8px 22px rgba(0,0,0,0.15);
+    }
+
+    .food-card img {
+        width: 100%;
+        height: 170px;
+        object-fit: cover;
+        border-radius: 12px;
+        margin-bottom: 12px;
+    }
+
+    .food-title {
+        font-size: 18px;
+        font-weight: 600;
+    }
+
+    .food-desc {
+        color: #777;
+        font-size: 14px;
+        margin-bottom: 6px;
+    }
+
+    .food-price {
+        font-size: 17px;
+        color: #d62828;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+
+    .btn-add {
+        width: 100%;
+        padding: 10px;
+        background: #d62828;
+        border: none;
+        color: white;
+        font-weight: 600;
+        border-radius: 8px;
+        transition: 0.3s;
+    }
+
+    .btn-add:hover {
+        background: #b81f1f;
+    }
+</style>
+
+<h2 class="menu-title">Menu món ăn</h2>
+
+<!-- FILTER -->
+<div class="menu-filter">
+    <button class="active" onclick="filterMenu('all')">Tất cả</button>
+    <button onclick="filterMenu('fast')">Đồ ăn nhanh</button>
+    <button onclick="filterMenu('vietnam')">Món Việt</button>
+    <button onclick="filterMenu('noodle')">Món nước</button>
+    <button onclick="filterMenu('drink')">Đồ uống</button>
+    <button onclick="filterMenu('dessert')">Tráng miệng</button>
+</div>
+
+<!-- PRODUCT LIST -->
+<div class="row" id="menuList">
+
+    <!-- Burger -->
+    <div class="col-md-3 col-6 food-item fast">
+        <div class="food-card">
+            <img src="/images/burger_bo.jpg">
+            <div class="food-title">Burger Bò</div>
+            <div class="food-desc">Bò Mỹ + Rau + Sốt đặc biệt</div>
+            <div class="food-price">65.000đ</div>
+
+            <button class="btn-add"
+                    onclick="addToCart(this)"
+                    data-name="Burger Bò"
+                    data-price="65000"
+                    data-img="/images/burger_bo.jpg">
+                Thêm vào giỏ
+            </button>
+        </div>
+    </div>
+
+    <!-- Gà rán -->
+    <div class="col-md-3 col-6 food-item fast">
+        <div class="food-card">
+            <img src="/images/ga_ran2.jpg">
+            <div class="food-title">Gà Rán Giòn</div>
+            <div class="food-desc">Giòn rụm – nóng hổi</div>
+            <div class="food-price">45.000đ</div>
+
+            <button class="btn-add"
+                    onclick="addToCart(this)"
+                    data-name="Gà Rán Giòn"
+                    data-price="45000"
+                    data-img="/images/ga_ran2.jpg">
+                Thêm vào giỏ
+            </button>
+        </div>
+    </div>
+
+    <!-- Pizza -->
+    <div class="col-md-3 col-6 food-item fast">
+        <div class="food-card">
+            <img src="/images/pizza_phomai.jpg">
+            <div class="food-title">Pizza Phô Mai</div>
+            <div class="food-desc">Phô mai mozzarella thơm béo</div>
+            <div class="food-price">79.000đ</div>
+
+            <button class="btn-add"
+                    onclick="addToCart(this)"
+                    data-name="Pizza Phô Mai"
+                    data-price="79000"
+                    data-img="/images/pizza_phomai.jpg">
+                Thêm vào giỏ
+            </button>
+        </div>
+    </div>
+
+    <!-- Mì cay -->
+    <div class="col-md-3 col-6 food-item noodle vietnam">
+        <div class="food-card">
+            <img src="/images/mi_cay_bo.jpg">
+            <div class="food-title">Mì Cay Bò</div>
+            <div class="food-desc">7 cấp độ cay</div>
+            <div class="food-price">32.000đ</div>
+
+            <button class="btn-add"
+                    onclick="addToCart(this)"
+                    data-name="Mì Cay Bò"
+                    data-price="32000"
+                    data-img="/images/mi_cay_bo.jpg">
+                Thêm vào giỏ
+            </button>
+        </div>
+    </div>
+
+    <!-- Phở -->
+    <div class="col-md-3 col-6 food-item noodle vietnam">
+        <div class="food-card">
+            <img src="/images/pho1.jpg">
+            <div class="food-title">Phở Bò</div>
+            <div class="food-desc">Nước dùng đậm vị</div>
+            <div class="food-price">40.000đ</div>
+
+            <button class="btn-add"
+                    onclick="addToCart(this)"
+                    data-name="Phở Bò"
+                    data-price="40000"
+                    data-img="/images/pho1.jpg">
+                Thêm vào giỏ
+            </button>
+        </div>
+    </div>
+
+    <!-- Bún bò -->
+    <div class="col-md-3 col-6 food-item noodle vietnam">
+        <div class="food-card">
+            <img src="/images/bun_bo2.jpg">
+            <div class="food-title">Bún Bò Huế</div>
+            <div class="food-desc">Huế chuẩn vị</div>
+            <div class="food-price">42.000đ</div>
+
+            <button class="btn-add"
+                    onclick="addToCart(this)"
+                    data-name="Bún Bò Huế"
+                    data-price="42000"
+                    data-img="/images/bun_bo2.jpg">
+                Thêm vào giỏ
+            </button>
+        </div>
+    </div>
+
+    <!-- Trà sữa -->
+    <div class="col-md-3 col-6 food-item drink">
+        <div class="food-card">
+            <img src="/images/tra_sua1.jpg">
+            <div class="food-title">Trà Sữa Trân Châu</div>
+            <div class="food-desc">Ngọt – béo – thơm</div>
+            <div class="food-price">28.000đ</div>
+
+            <button class="btn-add"
+                    onclick="addToCart(this)"
+                    data-name="Trà Sữa Trân Châu"
+                    data-price="28000"
+                    data-img="/images/tra_sua1.jpg">
+                Thêm vào giỏ
+            </button>
+        </div>
+    </div>
+
+    <!-- Sinh tố dâu -->
+    <div class="col-md-3 col-6 food-item drink dessert">
+        <div class="food-card">
+            <img src="/images/sinh_to_dau.jpg">
+            <div class="food-title">Sinh Tố Dâu</div>
+            <div class="food-desc">Dâu tươi xay mịn</div>
+            <div class="food-price">30.000đ</div>
+
+            <button class="btn-add"
+                    onclick="addToCart(this)"
+                    data-name="Sinh Tố Dâu"
+                    data-price="30000"
+                    data-img="/images/sinh_to_dau.jpg">
+                Thêm vào giỏ
+            </button>
+        </div>
+    </div>
+
 </div>
 
 <script>
-    const RESTAURANT_ID = "9e895695-d112-436a-8cbf-4702af29ccdb";
+    function filterMenu(type) {
+        document.querySelectorAll(".menu-filter button").forEach(btn => btn.classList.remove("active"));
+        event.target.classList.add("active");
 
-    fetch(`/api/menu-items/restaurant/${RESTAURANT_ID}`)
-        .then(res => res.json())
-        .then(data => {
-            let html = "";
-            data.forEach(m => {
-                html += `
-        <div class="card">
-            <h3>${m.name}</h3>
-            <p>${m.description}</p>
-            <p><b>${m.price.toLocaleString()}đ</b></p>
-            <button class="btn" onclick="addToCart(${m.id}, '${m.name}', ${m.price})">Thêm vào giỏ</button>
-        </div>`;
-            });
-            document.getElementById("menuList").innerHTML = html;
+        document.querySelectorAll(".food-item").forEach(item => {
+            if (type === "all") {
+                item.style.display = "block";
+            } else {
+                item.style.display = item.classList.contains(type) ? "block" : "none";
+            }
         });
-
-    function addToCart(id, name, price) {
-        let cart = JSON.parse(localStorage.getItem("cart") || "[]");
-        let existing = cart.find(i => i.id === id);
-        if (existing) {
-            existing.qty++;
-        } else {
-            cart.push({ id, name, price, qty: 1 });
-        }
-        localStorage.setItem("cart", JSON.stringify(cart));
-        alert("Đã thêm vào giỏ!");
     }
 </script>
-
-</body>
-</html>

@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>FoodFast – Customer</title>
+    <title>FoodFast – Home</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
@@ -10,151 +10,457 @@
     <style>
         body {
             font-family: "Segoe UI", sans-serif;
-            background: #f8f9fa;
-            overflow-x: hidden;
-        }
-
-        /* SIDEBAR */
-        #sidebar {
-            width: 240px;
-            height: 100vh;
             background: #ffffff;
-            position: fixed;
-            left: 0;
-            top: 0;
-            border-right: 1px solid #e5e7eb;
-            padding-top: 20px;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.05);
         }
 
-        #sidebar h4 {
-            padding-left: 20px;
-            font-weight: 700;
-            margin-bottom: 20px;
-            color: #0d6efd;
-        }
-
-        #sidebar .nav-link {
-            color: #6c757d;
-            padding: 12px 20px;
-            font-size: 16px;
-            display: block;
-            transition: 0.25s;
-            border-radius: 6px;
-            margin: 6px 12px;
-        }
-
-        #sidebar .nav-link:hover {
-            background: #e7f1ff;
-            color: #0d6efd;
-        }
-
-        #sidebar .nav-link.active {
-            background: #0d6efd;
-            color: #fff;
-        }
-
-        /* MAIN CONTENT */
-        #main {
-            margin-left: 245px;
-            padding: 25px;
-        }
-
-        #content {
-            background: #ffffff;
-            padding: 25px;
-            border-radius: 12px;
-            min-height: 600px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-        }
-
-        .loading {
+        /* ================= HEADER ================= */
+        .top-menu {
+            width: 100%;
+            padding: 12px 0;
             text-align: center;
-            padding: 50px;
-            color: #6c757d;
+            background: #ffffff;
+            font-size: 18px;
+            letter-spacing: 1px;
+            border-bottom: 1px solid #eee;
+            font-weight: 500;
+        }
+
+        .top-menu a {
+            margin: 0 18px;
+            text-decoration: none;
+            color: #333;
+            transition: 0.3s;
+            cursor: pointer;
+        }
+
+        .top-menu a:hover {
+            color: #d62828;
+        }
+
+        .top-menu a.active {
+            color: #d62828;
+            font-weight: 700;
+            border-bottom: 2px solid #d62828;
+            padding-bottom: 4px;
+        }
+
+        /* ================= SEARCH BAR ================= */
+        .search-container {
+            width: 100%;
+            max-width: 650px;
+            margin: 20px auto 5px auto;
+            position: relative;
+        }
+
+        #searchInput {
+            width: 100%;
+            padding: 12px 50px 12px 20px;
+            border: 1px solid #ddd;
+            border-radius: 30px;
+            font-size: 16px;
+            outline: none;
+            transition: 0.25s;
+            background: #fafafa;
+        }
+
+        #searchInput:focus {
+            border-color: #d62828;
+            box-shadow: 0 0 8px rgba(214,40,40,0.3);
+            background: #fff;
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 20px;
+            color: #999;
+            cursor: pointer;
+        }
+
+        /* ================= LOGO ================= */
+        .logo-area {
+            text-align: center;
+            padding: 25px 0 10px 0;
+        }
+
+        .logo-area h1 {
+            font-family: "Georgia", serif;
+            font-size: 40px;
+            font-weight: 700;
+        }
+
+        /* ================= BANNER ================= */
+        .banner {
+            width: 100%;
+            height: 420px;
+            background: url("https://images.unsplash.com/photo-1600891964599-f61ba0e24092?q=80&w=1470&auto=format") center/cover;
+            border-radius: 16px;
+            position: relative;
+            margin-bottom: 40px;
+        }
+
+        .banner-text {
+            position: absolute;
+            top: 60%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            text-align: center;
+        }
+
+        .banner-text h2 {
+            font-size: 55px;
+            font-family: "Georgia", serif;
+            letter-spacing: 3px;
+        }
+
+        .banner-text p {
+            margin-top: -10px;
+            font-size: 22px;
+        }
+
+        /* CATEGORY */
+        .category-section .cat-box {
+            text-align: center;
+            padding: 20px;
+            transition: 0.3s;
+        }
+
+        .category-section img {
+            width: 140px;
+            height: 140px;
+            object-fit: cover;
+            border-radius: 12px;
+        }
+
+        /* FEATURED */
+        .section-title {
+            text-align: center;
+            font-size: 28px;
+            font-family: "Georgia", serif;
+            margin-bottom: 20px;
+        }
+
+        .product-card {
+            background: #fff;
+            padding: 15px;
+            border-radius: 14px;
+            text-align: center;
+            transition: 0.25s;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+            min-height: 260px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .product-card img {
+            width: 100%;
+            height: 160px;
+            object-fit: cover;
+            border-radius: 12px;
+            margin-bottom: 10px;
+        }
+
+        .product-card h5 {
+            font-size: 17px;
+            margin-bottom: 4px;
+        }
+
+        .product-card p {
+            margin: 0;
+            font-weight: 700;
+            font-size: 15px;
+            color: #d62828;
+        }
+
+        .gal {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            border-radius: 14px;
         }
     </style>
-
 </head>
+
 <body>
 
-<!-- SIDEBAR -->
-<div id="sidebar">
-    <h4><i class="bi bi-cart4"></i> FoodFast</h4>
+<!-- TOP MENU -->
+<div class="top-menu">
+    <a href="javascript:void(0)" data-page="home" onclick="switchPage(this, 'home')">Trang chủ</a>
+    <a href="javascript:void(0)" data-page="menu" onclick="switchPage(this, 'menu')">Menu</a>
+    <a href="javascript:void(0)" data-page="cart" onclick="switchPage(this, 'cart')">Giỏ hàng</a>
+    <a href="javascript:void(0)" data-page="orders" onclick="switchPage(this, 'orders')">Đơn hàng</a>
+    <a href="javascript:void(0)" data-page="profile" onclick="switchPage(this, 'profile')">Tài khoản</a>
+</div>
 
-    <a class="nav-link active" data-page="home" onclick="loadPage('home')">
-        <i class="bi bi-house-door"></i> Trang chủ
-    </a>
+<!-- SEARCH BAR -->
+<div class="search-container">
+    <input type="text" id="searchInput" placeholder="Tìm món ăn hoặc nhà hàng..." onkeyup="searchFood()">
+    <i class="bi bi-search search-icon"></i>
+</div>
 
-    <a class="nav-link" data-page="menu" onclick="loadPage('menu')">
-        <i class="bi bi-menu-button-wide"></i> Menu món ăn
-    </a>
-
-    <a class="nav-link" data-page="cart" onclick="loadPage('cart')">
-        <i class="bi bi-cart"></i> Giỏ hàng
-    </a>
-
-    <a class="nav-link" data-page="checkout" onclick="loadPage('checkout')">
-        <i class="bi bi-credit-card"></i> Thanh toán
-    </a>
-
-    <a class="nav-link" data-page="orders" onclick="loadPage('orders')">
-        <i class="bi bi-bag-check"></i> Đơn hàng
-    </a>
-
-    <a class="nav-link" data-page="payments" onclick="loadPage('payments')">
-        <i class="bi bi-wallet2"></i> Lịch sử thanh toán
-    </a>
-
-    <a class="nav-link" data-page="feedback" onclick="loadPage('feedback')">
-        <i class="bi bi-star"></i> Đánh giá
-    </a>
-
-    <a class="nav-link" data-page="profile" onclick="loadPage('profile')">
-        <i class="bi bi-person"></i> Hồ sơ
-    </a>
+<!-- LOGO -->
+<div class="logo-area">
+    <h1>FoodFast</h1>
+    <div>Since 2024</div>
 </div>
 
 <!-- MAIN -->
-<div id="main">
+<div class="container">
 
-    <div id="content">
-        🔄 Đang tải giao diện...
+    <div class="banner">
+        <div class="banner-text">
+            <h2>Món ngon mỗi ngày</h2>
+            <p>Fresh • Fast • Quality</p>
+        </div>
     </div>
+
+    <!-- HOME CONTENT -->
+    <div id="homeContent">
+
+        <!-- CATEGORY -->
+        <section class="category-section">
+            <div class="row text-center">
+                <div class="col-md-6">
+                    <div class="cat-box">
+                        <img src="/images/do_an_nhanh.jpg">
+                        <h4>Đồ ăn nhanh</h4>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="cat-box">
+                        <img src="/images/nuoc_uong.jpg">
+                        <h4>Nước uống</h4>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FEATURED -->
+        <section class="mt-5">
+            <h2 class="section-title">Món ăn được yêu thích</h2>
+
+            <div class="row">
+
+                <div class="col-md-3 col-6">
+                    <div class="product-card">
+                        <img src="/images/burger_bo.jpg">
+                        <h5>Burger Bò</h5>
+                        <p>65.000đ</p>
+                    </div>
+                </div>
+
+                <div class="col-md-3 col-6">
+                    <div class="product-card">
+                        <img src="/images/pizza_phomai.jpg">
+                        <h5>Pizza Phô Mai</h5>
+                        <p>79.000đ</p>
+                    </div>
+                </div>
+
+                <div class="col-md-3 col-6">
+                    <div class="product-card">
+                        <img src="/images/ga_ran2.jpg">
+                        <h5>Gà Rán Giòn</h5>
+                        <p>45.000đ</p>
+                    </div>
+                </div>
+
+                <div class="col-md-3 col-6">
+                    <div class="product-card">
+                        <img src="/images/mi_cay_bo.jpg">
+                        <h5>Mì Cay Bò</h5>
+                        <p>52.000đ</p>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- GALLERY -->
+        <section class="mt-5 mb-5">
+            <div class="row g-3">
+                <div class="col-md-3"><img src="/images/tra_sua1.jpg" class="gal"></div>
+                <div class="col-md-3"><img src="/images/lau_1.jpg" class="gal"></div>
+                <div class="col-md-3"><img src="/images/nuoc_cam.jpg" class="gal"></div>
+                <div class="col-md-3"><img src="/images/khoai_tay1.jpg" class="gal"></div>
+                <div class="col-md-3"><img src="/images/pho1.jpg" class="gal"></div>
+                <div class="col-md-3"><img src="/images/sinh_to_dau.jpg" class="gal"></div>
+                <div class="col-md-3"><img src="/images/tra_viet_quoc.jpg" class="gal"></div>
+                <div class="col-md-3"><img src="/images/tom2.jpg" class="gal"></div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- LOAD PAGE AREA -->
+    <div id="pageContent"></div>
 
 </div>
 
 <script>
-    window.apiBase = "http://localhost:8080/api";
 
-    async function loadPage(pageName) {
+    /* SWITCH PAGE */
+    function switchPage(el, pageName) {
+        document.querySelectorAll(".top-menu a").forEach(a => a.classList.remove("active"));
+        el.classList.add("active");
 
-        // Active menu
-        document.querySelectorAll("#sidebar .nav-link").forEach(a => a.classList.remove("active"));
-        document.querySelector(`#sidebar .nav-link[data-page="${pageName}"]`).classList.add("active");
+        if (pageName === "home") {
+            homeContent.style.display = "block";
+            pageContent.innerHTML = "";
+            return;
+        }
 
-        // Show loading
-        document.getElementById("content").innerHTML = `
-            <div class="loading">
-                <div class="spinner-border text-primary mb-3" role="status"></div>
-                <p>Đang tải ${pageName}...</p>
-            </div>
-        `;
+        homeContent.style.display = "none";
+        loadPage(pageName);
+    }
+
+    /* LOAD PAGE */
+    async function loadPage(name) {
+
+        pageContent.innerHTML = `
+        <div class="text-center my-5">
+            <div class="spinner-border text-danger mb-3"></div>
+            <p>Đang tải ${name}...</p>
+        </div>`;
+
+        if (name === "cart") {
+            renderCartPage();
+            return;
+        }
 
         try {
-            let response = await fetch(`/customer/page?name=${pageName}`);
-            let html = await response.text();
-
-            document.getElementById("content").innerHTML = html;
-        }
-        catch (e) {
-            document.getElementById("content").innerHTML =
-                `<div class="alert alert-danger">⚠ Không thể load page: ${pageName}</div>`;
+            const res = await fetch(`/customer/page?name=${name}`);
+            pageContent.innerHTML = await res.text();
+        } catch (e) {
+            pageContent.innerHTML = `<div class="alert alert-danger">Không thể load trang ${name}</div>`;
         }
     }
 
-    // Load default page
-    loadPage("home");
+    /* SEARCH */
+    function searchFood() {
+        let keyword = document.getElementById("searchInput").value.toLowerCase();
+        let items = document.querySelectorAll(".product-card, .cat-box");
+
+        items.forEach(item => {
+            let text = item.innerText.toLowerCase();
+            item.style.display = text.includes(keyword) ? "block" : "none";
+        });
+    }
+
+
+    /* ===================================================
+       GIỎ HÀNG LOCALSTORAGE
+    ===================================================== */
+
+    function getCart() {
+        return JSON.parse(localStorage.getItem("cart") || "[]");
+    }
+
+    function saveCart(cart) {
+        localStorage.setItem("cart", JSON.stringify(cart));
+        updateCartCount();
+    }
+
+    function addToCart(btn) {
+        let name = btn.dataset.name;
+        let price = parseInt(btn.dataset.price);
+        let img = btn.dataset.img;
+
+        let cart = getCart();
+        let item = cart.find(i => i.name === name);
+
+        if (item) {
+            item.qty++;
+        } else {
+            cart.push({ name, price, img, qty: 1 });
+        }
+
+        saveCart(cart);
+
+        btn.innerText = "✓ Đã thêm";
+        btn.style.background = "#28a745";
+
+        setTimeout(() => {
+            btn.innerText = "Thêm vào giỏ";
+            btn.style.background = "#d62828";
+        }, 1200);
+    }
+
+    function updateCartCount() {
+        let cart = getCart();
+        let total = cart.reduce((s, i) => s + i.qty, 0);
+
+        let cartMenu = document.querySelector('[data-page="cart"]');
+        if (cartMenu) {
+            cartMenu.innerHTML = `Giỏ hàng (${total})`;
+        }
+    }
+
+
+    /* HIỂN THỊ TRANG GIỎ HÀNG */
+    function renderCartPage() {
+        let cart = getCart();
+
+        if (cart.length === 0) {
+            pageContent.innerHTML = `
+                <h3 class="text-center mt-4">Giỏ hàng trống</h3>
+                <p class="text-center text-muted">Hãy thêm món ăn vào giỏ!</p>`;
+            return;
+        }
+
+        let html = `
+            <h2 class="text-center mb-4">Giỏ hàng của bạn</h2>
+            <div class="row">
+        `;
+
+        cart.forEach((item, index) => {
+            html += `
+                <div class="col-md-6 mb-4">
+                    <div class="d-flex p-3 border rounded shadow-sm">
+                        <img src="${item.img}" style="width:100px;height:100px;border-radius:10px;object-fit:cover;margin-right:15px;">
+                        <div>
+                            <h5>${item.name}</h5>
+                            <div class="text-danger">${item.price.toLocaleString()}đ</div>
+                            <div class="d-flex align-items-center mt-2">
+                                <button class="btn btn-sm btn-outline-secondary" onclick="changeQty(${index}, -1)">−</button>
+                                <span class="mx-3">${item.qty}</span>
+                                <button class="btn btn-sm btn-outline-secondary" onclick="changeQty(${index}, 1)">+</button>
+                            </div>
+                            <button class="btn btn-sm btn-danger mt-2" onclick="removeItem(${index})">Xóa</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+
+        html += `</div>`;
+        pageContent.innerHTML = html;
+    }
+
+    function changeQty(index, delta) {
+        let cart = getCart();
+
+        if (cart[index].qty + delta <= 0) return;
+
+        cart[index].qty += delta;
+        saveCart(cart);
+        renderCartPage();
+    }
+
+    function removeItem(index) {
+        let cart = getCart();
+        cart.splice(index, 1);
+        saveCart(cart);
+        renderCartPage();
+    }
+
+    document.querySelector('[data-page="home"]').classList.add("active");
+    updateCartCount();
+
 </script>
 
 </body>

@@ -10,14 +10,17 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+    <!-- Architectural White-Blue UI Theme -->
     <style>
         :root {
             --primary: #0d6efd;
-            --accent: #0dcaf0;
-            --bg-light: #f9fafc;
+            --bg-light: #f5f7fa;
             --card-bg: #ffffff;
             --text-dark: #212529;
             --text-muted: #6c757d;
+            --border: #e5e7eb;
+            --sidebar-width: 240px;
+            --radius: 16px;
         }
 
         body {
@@ -25,68 +28,63 @@
             background-color: var(--bg-light);
             color: var(--text-dark);
             overflow-x: hidden;
-            transition: all 0.3s ease;
+            transition: 0.3s ease;
         }
 
         /* Sidebar */
         #sidebar {
-            width: 240px;
+            width: var(--sidebar-width);
             background: #ffffff;
             height: 100vh;
             position: fixed;
             padding: 25px 0;
-            box-shadow: 3px 0 12px rgba(0, 0, 0, 0.08);
-            border-right: 1px solid #e9ecef;
+            box-shadow: 3px 0 12px rgba(0,0,0,0.08);
+            border-right: 1px solid var(--border);
         }
 
         #sidebar h4 {
             text-align: center;
             color: var(--primary);
             font-weight: 700;
-            letter-spacing: 0.5px;
             margin-bottom: 28px;
         }
 
         #sidebar .nav-link {
             color: var(--text-muted);
             padding: 10px 18px;
-            border-radius: 8px;
+            border-radius: 10px;
             margin: 6px 12px;
             font-weight: 500;
-            text-decoration: none;
             display: flex;
             align-items: center;
             gap: 10px;
-            transition: all 0.25s ease;
+            transition: 0.25s;
+            cursor: pointer;
         }
 
         #sidebar .nav-link:hover {
             background-color: rgba(13, 110, 253, 0.08);
             color: var(--primary);
-            transform: translateX(4px);
+            transform: translateX(6px);
         }
 
         #sidebar .nav-link.active {
             background-color: var(--primary);
             color: #fff !important;
             font-weight: 600;
-            box-shadow: 0 0 10px rgba(13, 110, 253, 0.3);
         }
 
-        /* Main */
+        /* Main Layout */
         #main {
-            margin-left: 250px;
+            margin-left: var(--sidebar-width);
             padding: 35px;
-            background: var(--bg-light);
-            min-height: 100vh;
         }
 
-        /* Section Transition */
         section {
             display: none;
             opacity: 0;
             transform: translateY(10px);
-            transition: opacity 0.35s ease, transform 0.35s ease;
+            transition: 0.35s;
         }
 
         section.active-section {
@@ -95,74 +93,50 @@
             transform: translateY(0);
         }
 
-        /* Headings */
-        h2 {
-            color: var(--primary);
-            font-weight: 700;
-        }
-
         /* Cards */
         .card {
-            border: 1px solid #e5e7eb;
-            border-radius: 16px;
             background: var(--card-bg);
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            color: var(--text-dark);
-            transition: all 0.3s ease;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            transition: 0.25s;
         }
 
         .card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 4px 14px rgba(13, 110, 253, 0.15);
+            transform: translateY(-4px);
+            box-shadow: 0 6px 18px rgba(13,110,253,0.15);
         }
 
         .card h6 {
             font-size: 14px;
             color: var(--text-muted);
-            font-weight: 500;
         }
 
         .card h2 {
             font-weight: 700;
-            font-size: 30px;
-            margin-top: 8px;
+            font-size: 32px;
         }
 
-        /* Chart area */
         canvas {
-            background-color: #ffffff;
-            border-radius: 10px;
+            background: #fff;
+            border-radius: 12px;
             padding: 10px;
         }
 
-        /* Spinner */
-        .spinner-border {
-            width: 3rem;
-            height: 3rem;
-            color: var(--primary);
-        }
-
-        #logoutBtn {
-            border-radius: 8px;
-            font-size: 15px;
-            letter-spacing: 0.3px;
-            transition: all 0.25s ease;
-        }
-
         #logoutBtn:hover {
-            background: linear-gradient(90deg, rgba(0, 255, 225, 0.93), #00dfff);
+            background: var(--primary);
             color: #fff;
-            border: none;
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(197, 71, 241, 0.3);
         }
     </style>
 </head>
 
 <body>
+
 <!-- Sidebar -->
 <nav id="sidebar">
     <h4><i class="bi bi-lightning-charge-fill"></i> FoodFast Admin</h4>
+
     <ul class="nav flex-column">
         <li><a class="nav-link active" onclick="showSection('dashboard')"><i class="bi bi-speedometer2"></i> Bảng điều khiển</a></li>
         <li><a class="nav-link" onclick="showSection('users', 'users.html')"><i class="bi bi-people"></i> Người dùng</a></li>
@@ -171,66 +145,81 @@
         <li><a class="nav-link" onclick="showSection('payments', 'payments.html')"><i class="bi bi-credit-card"></i> Thanh toán</a></li>
         <li><a class="nav-link" onclick="showSection('drones', 'drones.html')"><i class="bi bi-cpu"></i> Drone</a></li>
         <li><a class="nav-link" onclick="showSection('deliveries', 'deliveries.html')"><i class="bi bi-truck"></i> Giao hàng</a></li>
-
     </ul>
 </nav>
 
-<!-- Main -->
+<!-- Main Content -->
 <main id="main">
+
+    <!-- Dashboard Section -->
     <section id="dashboard" class="active-section">
+
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="mb-0">Tổng quan hệ thống</h2>
+            <h2 class="mb-0"><i class="bi bi-speedometer2 me-2"></i> Tổng quan hệ thống</h2>
+
             <button id="logoutBtn" class="btn btn-outline-danger btn-sm fw-semibold px-3">
-                <i class="bi bi-box-arrow-right"></i> Đăng xuất
+                <i class="bi bi-box-arrow-right me-2"></i> Đăng xuất
             </button>
         </div>
 
+        <!-- Stats -->
         <div class="row g-4 mb-4">
-            <div class="col-md-3">
-                <div class="card text-center p-3">
-                    <h6>👤 Tổng Người Dùng</h6>
+
+            <div class="col-lg-3 col-md-6">
+                <div class="card text-center p-4">
+                    <div class="mb-2"><i class="bi bi-people-fill text-primary" style="font-size:24px;"></i></div>
+                    <h6>Tổng Người Dùng</h6>
                     <h2 id="userCount" class="text-primary">0</h2>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="card text-center p-3">
-                    <h6>📦 Đơn Hàng</h6>
+
+            <div class="col-lg-3 col-md-6">
+                <div class="card text-center p-4">
+                    <div class="mb-2"><i class="bi bi-box-seam-fill text-danger" style="font-size:24px;"></i></div>
+                    <h6> Đơn Hàng</h6>
                     <h2 id="orderCount" class="text-danger">0</h2>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="card text-center p-3">
-                    <h6>🚁 Drone Hoạt Động</h6>
+
+            <div class="col-lg-3 col-md-6">
+                <div class="card text-center p-4">
+                    <div class="mb-2"><i class="bi bi-cpu-fill text-success" style="font-size:24px;"></i></div>
+                    <h6>Drone Hoạt Động</h6>
                     <h2 id="droneCount" class="text-success">0</h2>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="card text-center p-3">
-                    <h6>💰 Tổng Doanh Thu</h6>
+
+            <div class="col-lg-3 col-md-6">
+                <div class="card text-center p-4">
+                    <div class="mb-2"><i class="bi bi-cash-coin text-warning" style="font-size:24px;"></i></div>
+                    <h6>Tổng Doanh Thu</h6>
                     <h2 id="revenueTotal" class="text-warning">0 ₫</h2>
                 </div>
             </div>
+
         </div>
 
+        <!-- Revenue Chart -->
         <div class="card p-4 mb-4">
-            <h5 class="text-primary"><i class="bi bi-bar-chart-line"></i> Biểu đồ Doanh Thu</h5>
+            <h5 class="text-primary mb-3"><i class="bi bi-bar-chart-line me-2"></i> Biểu đồ Doanh Thu</h5>
             <canvas id="revenueChart" height="80"></canvas>
         </div>
+
     </section>
 
     <!-- Dynamic Sections -->
     <section id="users"></section>
     <section id="restaurants"></section>
     <section id="orders"></section>
-
-
     <section id="payments"></section>
     <section id="drones"></section>
     <section id="deliveries"></section>
 </main>
 
+<!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
+<!-- KEEP ALL ORIGINAL LOGIC BELOW (unchanged) -->
 <script>
     window.apiBase = "http://localhost:8080/api";
     let currentFetchController = null;
@@ -306,8 +295,10 @@
             document.getElementById("userCount").textContent = users.length;
             document.getElementById("orderCount").textContent = orders.length;
             document.getElementById("droneCount").textContent = drones.length;
+
             const total = payments.reduce((sum, p) => sum + (p.amount || 0), 0);
             document.getElementById("revenueTotal").textContent = total.toLocaleString("vi-VN") + " ₫";
+
         } catch (err) {
             console.error("⚠️ Lỗi tải thống kê:", err);
         }
@@ -316,8 +307,9 @@
     async function loadRevenueChart() {
         try {
             const res = await fetch(window.apiBase + "/payments");
-            if (!res.ok) throw new Error("Không thể tải dữ liệu doanh thu!");
+            if (!res.ok) throw new Error("Không thể tải doanh thu!");
             const payments = await res.json();
+
             const monthly = {};
             payments.forEach(p => {
                 const m = new Date(p.createdAt).getMonth() + 1;
@@ -325,6 +317,7 @@
             });
 
             const ctx = document.getElementById("revenueChart");
+
             if (revenueChartInstance) revenueChartInstance.destroy();
 
             revenueChartInstance = new Chart(ctx, {
@@ -341,10 +334,10 @@
                     }]
                 },
                 options: {
-                    scales: { y: { beginAtZero: true } },
-                    plugins: { legend: { labels: { color: "#212529" } } }
+                    scales: { y: { beginAtZero: true } }
                 }
             });
+
         } catch (err) {
             console.error("⚠️ Lỗi biểu đồ:", err);
         }
@@ -352,4 +345,6 @@
 
     document.addEventListener("DOMContentLoaded", () => showSection("dashboard"));
 </script>
+
 </body>
+</html>

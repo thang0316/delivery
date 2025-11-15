@@ -1,164 +1,136 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8" />
-    <title>💳 Quản lý Thanh toán | FoodFast Admin</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
-</head>
+<div class="container p-3">
 
-<body class="bg-light p-4">
-<div class="container">
     <h3 class="text-primary mb-3">💳 Quản lý Thanh toán</h3>
 
-    <!-- 🔹 Form thêm thanh toán -->
     <div class="p-3 border bg-white rounded mb-4">
-        <h5 class="text-success mb-3">➕ Thêm Thanh toán mới</h5>
+        <h5 class="text-success mb-3">➕ Thêm Thanh toán</h5>
+
         <div class="row g-2">
             <div class="col-md-3">
-                <select id="orderSelect" class="form-select">
+                <select id="orderSelectPayment" class="form-select">
                     <option disabled selected>Đang tải đơn hàng...</option>
                 </select>
             </div>
+
             <div class="col-md-2">
-                <input id="method" class="form-control" placeholder="Phương thức (VD: CASH, CARD)" />
+                <input id="method" class="form-control" placeholder="CASH / CARD" />
             </div>
+
             <div class="col-md-2">
-                <input id="amount" type="number" min="0" class="form-control" placeholder="Số tiền (VNĐ)" />
+                <input id="amount" type="number" min="0" class="form-control" placeholder="Số tiền" />
             </div>
+
             <div class="col-md-2">
                 <select id="status" class="form-select">
-                    <option value="PENDING">PENDING</option>
-                    <option value="SUCCESS">SUCCESS</option>
-                    <option value="FAILED">FAILED</option>
+                    <option>PENDING</option>
+                    <option>SUCCESS</option>
+                    <option>FAILED</option>
                 </select>
             </div>
+
             <div class="col-md-3">
                 <button class="btn btn-primary w-100" onclick="createPayment()">Thêm</button>
             </div>
         </div>
     </div>
 
-    <!-- 🔹 Bảng hiển thị danh sách -->
     <table class="table table-striped align-middle">
         <thead class="table-primary">
         <tr>
             <th>ID</th>
             <th>Đơn hàng</th>
             <th>Phương thức</th>
-            <th>Số tiền (VNĐ)</th>
+            <th>Số tiền</th>
             <th>Trạng thái</th>
             <th>Thời gian</th>
-            <th>Hành động</th>
+            <th>Xóa</th>
         </tr>
         </thead>
         <tbody id="payTable">
-        <tr><td colspan="7" class="text-center text-muted">Đang tải dữ liệu...</td></tr>
+        <tr><td colspan="7" class="text-center text-muted">Đang tải...</td></tr>
         </tbody>
     </table>
+
 </div>
 
 <script>
-    const API_BASE = "http://localhost:8080/api";
 
-    // 🟢 Load danh sách đơn hàng để chọn khi thêm thanh toán
-    async function loadOrders() {
-        const select = document.getElementById("orderSelect");
-        try {
-            const res = await fetch(`${API_BASE}/orders`);
-            if (!res.ok) throw new Error("Không thể tải danh sách đơn hàng!");
-            const data = await res.json();
-            if (!data.length) {
-                select.innerHTML = `<option disabled>Không có đơn hàng nào</option>`;
-                return;
-            }
-            select.innerHTML = data.map(o =>
-                `<option value="${o.id}">#${o.id} - ${o.status || "Unknown"}</option>`
-            ).join("");
-        } catch (err) {
-            console.error("❌ Lỗi load orders:", err);
-            select.innerHTML = `<option disabled>Lỗi tải đơn hàng</option>`;
-        }
-    }
+    var API_BASE = window.apiBase;
 
-    // 🟢 Load danh sách thanh toán
-    async function loadPayments() {
-        const tbody = document.getElementById("payTable");
-        tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">Đang tải...</td></tr>`;
-        try {
-            const res = await fetch(`${API_BASE}/payments`);
-            if (!res.ok) throw new Error("Không thể tải danh sách thanh toán!");
-            const data = await res.json();
+    function loadOrders() {
+        var select = document.getElementById("orderSelectPayment");
 
-            if (!data.length) {
-                tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted fst-italic">Chưa có thanh toán nào</td></tr>`;
-                return;
-            }
+        fetch(API_BASE + "/orders")
+            .then(res => res.json())
+            .then(data => {
+                if (!data.length) {
+                    select.innerHTML = "<option disabled>Không có đơn hàng</option>";
+                    return;
+                }
 
-            tbody.innerHTML = data.map(p => `
-      <tr>
-        <td>${p.id}</td>
-        <td>${p.order?.id || "—"}</td>
-        <td>${p.method || "—"}</td>
-        <td>${p.amount?.toLocaleString("vi-VN") || 0}</td>
-        <td>${p.status}</td>
-        <td>${p.createdAt || "—"}</td>
-        <td>
-          <button class="btn btn-sm btn-outline-danger" onclick="deletePayment('${p.id}')">🗑️</button>
-        </td>
-      </tr>
-    `).join("");
-        } catch (err) {
-            tbody.innerHTML = `<tr><td colspan="7" class="text-center text-danger">❌ ${err.message}</td></tr>`;
-        }
-    }
-
-    // 🟢 Tạo thanh toán mới
-    async function createPayment() {
-        const orderId = document.getElementById("orderSelect").value;
-        const method = document.getElementById("method").value.trim();
-        const amount = parseFloat(document.getElementById("amount").value);
-        const status = document.getElementById("status").value;
-
-        if (!orderId || !method || isNaN(amount)) {
-            alert("⚠️ Vui lòng nhập đầy đủ thông tin!");
-            return;
-        }
-
-        const data = { orderId, method, amount, status };
-        console.log("📤 Gửi request:", data);
-
-        try {
-            const res = await fetch(`${API_BASE}/payments`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(data)
+                select.innerHTML = data.map(o =>
+                    `<option value="${o.id}">#${o.id} - ${o.customer?.fullName || "NoName"} - ${o.status}</option>`
+                ).join("");
+            })
+            .catch(err => {
+                console.error(err);
+                select.innerHTML = "<option disabled>Lỗi tải đơn hàng</option>";
             });
-            if (!res.ok) throw new Error(await res.text());
-            alert("✅ Thêm thanh toán thành công!");
-            loadPayments();
-        } catch (err) {
-            alert("❌ Lỗi thêm thanh toán!\n" + err.message);
-        }
     }
 
-    // 🟢 Xóa thanh toán
-    async function deletePayment(id) {
-        if (!confirm("Bạn có chắc muốn xóa thanh toán này?")) return;
-        try {
-            const res = await fetch(`${API_BASE}/payments/${id}`, { method: "DELETE" });
-            if (!res.ok) throw new Error(await res.text());
-            alert("🗑️ Thanh toán đã bị xóa!");
-            loadPayments();
-        } catch (err) {
-            alert("❌ Không thể xóa thanh toán!\n" + err.message);
-        }
+    function loadPayments() {
+        var tbody = document.getElementById("payTable");
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">Đang tải...</td></tr>`;
+
+        fetch(API_BASE + "/payments")
+            .then(res => res.json())
+            .then(data => {
+                if (!data.length) {
+                    tbody.innerHTML = `<tr><td colspan="7" class="text-center">Chưa có thanh toán</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = data.map(p => `
+                    <tr>
+                        <td>${p.id}</td>
+                        <td>#${p.order?.id || "-"}</td>
+                        <td>${p.method}</td>
+                        <td>${(p.amount || 0).toLocaleString("vi-VN")}</td>
+                        <td>${p.status}</td>
+                        <td>${p.createdAt || "-"}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-danger" onclick="deletePayment('${p.id}')">🗑️</button>
+                        </td>
+                    </tr>
+                `).join("");
+            });
     }
 
-    // 🟢 Khởi tạo
-    window.addEventListener("DOMContentLoaded", async () => {
-        await loadOrders();
-        await loadPayments();
-    });
+    function createPayment() {
+        var data = {
+            orderId: document.getElementById("orderSelectPayment").value,
+            method: document.getElementById("method").value.trim(),
+            amount: Number(document.getElementById("amount").value),
+            status: document.getElementById("status").value
+        };
+
+        fetch(API_BASE + "/payments", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(data)
+        }).then(res => res.text())
+          .then(txt => {
+              loadPayments();
+              alert("Đã thêm thanh toán!");
+          });
+    }
+
+    function deletePayment(id) {
+        fetch(API_BASE + "/payments/" + id, {method: "DELETE"})
+            .then(res => loadPayments());
+    }
+
+    loadOrders();
+    loadPayments();
+
 </script>
-</body>
-</html>
