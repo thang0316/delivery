@@ -26,149 +26,113 @@
     <h2><i class="bi bi-basket2"></i> Quản lý Đơn hàng</h2>
     <p class="subtitle">Tạo, quản lý và theo dõi đơn hàng trong hệ thống</p>
 
-    <!-- ============================== -->
-    <!-- Form tạo đơn -->
-    <!-- ============================== -->
+    <!-- FORM TẠO ĐƠN -->
     <div class="card p-4 mb-4">
         <h5 class="text-primary mb-3"><i class="bi bi-plus-circle"></i> Tạo đơn hàng mới</h5>
 
-        <!-- Hàng 1 -->
         <div class="row g-2">
-            <div class="col-md-3">
-                <select id="userSelect" class="form-select">
-                    <option disabled selected>Đang tải người dùng...</option>
-                </select>
-            </div>
-
-            <div class="col-md-3">
-                <select id="restaurantSelect" class="form-select">
-                    <option disabled selected>Đang tải nhà hàng...</option>
-                </select>
-            </div>
-
+            <div class="col-md-3"><select id="userSelect" class="form-select"></select></div>
+            <div class="col-md-3"><select id="restaurantSelect" class="form-select"></select></div>
             <div class="col-md-3"><input id="customerName" class="form-control" placeholder="Tên khách hàng"></div>
             <div class="col-md-3"><input id="customerPhone" class="form-control" placeholder="Số điện thoại"></div>
         </div>
 
-        <!-- Hàng 2 -->
         <div class="row g-2 mt-2">
             <div class="col-md-3"><input id="customerAddress" class="form-control" placeholder="Địa chỉ giao hàng"></div>
-
-            <div class="col-md-4">
-                <select id="menuSelect" class="form-select">
-                    <option disabled selected>Đang tải món ăn...</option>
-                </select>
-            </div>
-
-            <div class="col-md-2"><input id="quantity" type="number" min="1" value="1" class="form-control"></div>
-
-            <div class="col-md-3">
-                <button class="btn btn-gradient w-100" onclick="addMenuItem()">Thêm món</button>
-            </div>
+            <div class="col-md-4"><select id="menuSelect" class="form-select"></select></div>
+            <div class="col-md-2"><input id="quantity" type="number" value="1" min="1" class="form-control"></div>
+            <div class="col-md-3"><button class="btn btn-gradient w-100" onclick="addMenuItem()">Thêm món</button></div>
         </div>
 
-        <!-- Danh sách món đã chọn -->
         <div class="mt-3">
             <h6 class="text-primary"><i class="bi bi-list-check"></i> Món đã chọn</h6>
             <ul id="selectedItems" class="list-group"></ul>
         </div>
 
-        <div class="mt-3">
-            <button class="btn btn-success w-100" onclick="createOrder()">
-                <i class="bi bi-check2-circle"></i> Tạo đơn hàng
-            </button>
-        </div>
+        <button class="btn btn-success w-100 mt-3" onclick="createOrder()">Tạo đơn hàng</button>
     </div>
 
-    <!-- ============================== -->
-    <!-- Bảng đơn hàng -->
-    <!-- ============================== -->
+    <!-- DANH SÁCH ĐƠN -->
     <div class="card shadow-sm">
         <div class="card-body p-0">
-            <table class="table table-hover mb-0 align-middle" id="orderTable">
+            <table class="table table-hover mb-0 align-middle">
                 <thead>
                 <tr>
-                    <th>ID</th><th>Khách hàng</th><th>Nhà hàng</th><th>Tổng tiền</th><th>Trạng thái</th><th>Hành động</th>
+                    <th>ID</th><th>Khách hàng</th><th>Nhà hàng</th>
+                    <th>Tổng tiền</th><th>Trạng thái</th><th>Hành động</th>
                 </tr>
                 </thead>
-                <tbody>
-                <tr><td colspan="6" class="text-center text-muted fst-italic">Đang tải dữ liệu...</td></tr>
+                <tbody id="orderTable">
+                <tr><td colspan="6" class="text-center text-muted fst-italic">Đang tải...</td></tr>
                 </tbody>
             </table>
         </div>
     </div>
 </div>
 
-<!-- ============================== -->
-<!-- MODAL CHI TIẾT ĐƠN HÀNG -->
-<!-- ============================== -->
-<div class="modal fade" id="orderDetailModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-
-            <div class="modal-header">
-                <h5 class="modal-title text-primary">
-                    <i class="bi bi-receipt"></i> Chi tiết đơn hàng
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-
-            <div class="modal-body">
-                <div id="orderDetailContent">Đang tải...</div>
-            </div>
-
+<!-- MODAL -->
+<div class="modal fade" id="orderDetailModal">
+    <div class="modal-dialog modal-lg"><div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title text-primary"><i class="bi bi-receipt"></i> Chi tiết đơn hàng</h5>
+            <button class="btn-close" data-bs-dismiss="modal"></button>
         </div>
-    </div>
+        <div class="modal-body" id="orderDetailContent">Đang tải...</div>
+    </div></div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
 <script>
     const API_BASE = "http://localhost:8080/api";
     let menuItems = [];
     let selectedItems = [];
 
-    // ============================
-    // LOAD DATA
-    // ============================
+    /* ===========================
+       LOAD DROPDOWN
+    =========================== */
 
     async function loadUsers() {
-        const res = await fetch(`${API_BASE}/users`);
-        const data = await res.json();
-        userSelect.innerHTML = data.map(u => `<option value="${u.id}">${u.username}</option>`).join("");
+        const res = await fetch(API_BASE + "/users");
+        userSelect.innerHTML = (await res.json()).map(u =>
+            `<option value="${u.id}">${u.username}</option>`
+        ).join("");
     }
 
     async function loadRestaurants() {
-        const res = await fetch(`${API_BASE}/restaurants`);
-        const data = await res.json();
-        restaurantSelect.innerHTML = data.map(r => `<option value="${r.id}">${r.name}</option>`).join("");
+        const res = await fetch(API_BASE + "/restaurants");
+        restaurantSelect.innerHTML = (await res.json()).map(r =>
+            `<option value="${r.id}">${r.name}</option>`
+        ).join("");
     }
 
     async function loadMenuItems() {
-        const res = await fetch(`${API_BASE}/menu-items`);
+        const res = await fetch(API_BASE + "/menu-items");
         menuItems = await res.json();
-        menuSelect.innerHTML = menuItems.map(m => `<option value="${m.id}">${m.name} - ${m.price}₫</option>`).join("");
+        menuSelect.innerHTML = menuItems.map(m =>
+            `<option value="${m.id}">${m.name} - ${m.price}₫</option>`
+        ).join("");
     }
 
-    // ============================
-    // MÓN ĐÃ CHỌN
-    // ============================
+    /* ===========================
+       CHỌN MÓN
+    =========================== */
 
     function addMenuItem() {
         const id = menuSelect.value;
         const qty = parseInt(quantity.value);
 
-        if (!id || qty <= 0) return alert("Chọn món + số lượng hợp lệ!");
+        if (!id || qty <= 0) return alert("Chọn món và số lượng hợp lệ!");
 
         const item = menuItems.find(m => m.id == id);
-        selectedItems.push({ menuItemId: id, name: item.name, quantity: qty, price: item.price });
+        selectedItems.push({ menuItemId:id, name:item.name, quantity:qty, price:item.price });
 
         renderSelectedItems();
     }
 
     function renderSelectedItems() {
-        // ❗ FIX: đúng ID — không dùng selectedItemsEl vì KHÔNG tồn tại
-        document.getElementById("selectedItems").innerHTML = selectedItems.map((i, idx) => `
-            <li class="list-group-item d-flex justify-content-between align-items-center">
+        selectedItemsEl.innerHTML = selectedItems.map((i, idx) => `
+            <li class="list-group-item d-flex justify-content-between">
                 <div><b>${i.name}</b> × ${i.quantity}</div>
                 <button class="btn btn-sm btn-danger" onclick="removeItem(${idx})">
                     <i class="bi bi-x"></i>
@@ -178,16 +142,16 @@
     }
 
     function removeItem(index) {
-        selectedItems.splice(index, 1);
+        selectedItems.splice(index,1);
         renderSelectedItems();
     }
 
-    // ============================
-    // TẠO ĐƠN
-    // ============================
+    /* ===========================
+       TẠO ĐƠN
+    =========================== */
 
     async function createOrder() {
-        if (selectedItems.length === 0) return alert("Đơn hàng phải có ít nhất 1 món!");
+        if (selectedItems.length === 0) return alert("Cần ít nhất 1 món!");
 
         const data = {
             userId: userSelect.value,
@@ -195,126 +159,159 @@
             customerName: customerName.value,
             customerPhone: customerPhone.value,
             customerAddress: customerAddress.value,
-            items: selectedItems.map(i => ({
-                menuItemId: i.menuItemId,
-                quantity: i.quantity
-            }))
+            items: selectedItems.map(i => ({ menuItemId:i.menuItemId, quantity:i.quantity }))
         };
 
-        await fetch(`${API_BASE}/orders`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data)
+        await fetch(API_BASE + "/orders", {
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify(data)
         });
 
-        alert("Đã tạo đơn!");
+        alert("Tạo đơn thành công!");
         selectedItems = [];
         renderSelectedItems();
         loadOrders();
     }
 
-    // ============================
-    // LOAD ĐƠN
-    // ============================
+    /* ===========================
+       LOAD ĐƠN — FIX FULL
+    =========================== */
 
     async function loadOrders() {
-        const res = await fetch(`${API_BASE}/orders`);
+        const res = await fetch(API_BASE + "/orders");
         const orders = await res.json();
 
-        document.querySelector("#orderTable tbody").innerHTML = orders.map(o => `
-            <tr>
-                <td>${o.id}</td>
-                <td>${o.customerName}</td>
-                <td>${o.restaurant?.name}</td>
-                <td>${o.totalAmount?.toLocaleString()}₫</td>
-                <td>${o.status}</td>
-                <td>
-                    <button class="btn btn-sm btn-outline-primary" onclick="viewOrderDetail(${o.id})">
-                        <i class="bi bi-eye"></i>
-                    </button>
-                    <button class="btn btn-sm btn-outline-danger" onclick="deleteOrder(${o.id})">
-                        <i class="bi bi-trash"></i>
-                    </button>
-                </td>
-            </tr>
-        `).join("");
+        orderTable.innerHTML = orders.map(o => {
+            let disabled = o.status === "COMPLETED" ? "disabled" : "";
+
+            return `
+                <tr>
+                    <td>${o.id}</td>
+                    <td>${o.customerName}</td>
+                    <td>${o.restaurant?.name}</td>
+                    <td>${o.totalAmount?.toLocaleString()} ₫</td>
+
+                    <td>
+                        <select class="form-select form-select-sm"
+                                onchange="updateStatus(${o.id}, this)"
+                                data-old="${o.status}"
+                                ${disabled}>
+                            ${statusOptions(o.status)}
+                        </select>
+                    </td>
+
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" onclick="viewOrderDetail(${o.id})">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteOrder(${o.id})">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                </tr>`;
+        }).join("");
     }
 
-    // ============================
-    // VIEW ORDER DETAIL — FIX FULL
-    // ============================
+    function statusOptions(current) {
+        const statuses = ["PENDING","CONFIRMED","PREPARING","DELIVERING","COMPLETED","CANCELLED"];
+        return statuses.map(s =>
+            `<option value="${s}" ${s===current?"selected":""}>${s}</option>`
+        ).join("");
+    }
+
+    /* ===========================
+       UPDATE STATUS — FIX FULL
+    =========================== */
+
+    async function updateStatus(orderId, selectEl) {
+        const oldStatus = selectEl.getAttribute("data-old");
+        const newStatus = selectEl.value;
+
+        if (oldStatus === newStatus) return;
+
+        if (!confirm(`Xác nhận đổi trạng thái:\n${oldStatus} → ${newStatus}?`)) {
+            selectEl.value = oldStatus;
+            return;
+        }
+
+        await fetch(`${API_BASE}/orders/${orderId}/status`, {
+            method:"PUT",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({status:newStatus})
+        });
+
+        alert("Cập nhật thành công!");
+
+        if (newStatus === "COMPLETED") selectEl.setAttribute("disabled", true);
+
+        selectEl.setAttribute("data-old", newStatus);
+    }
+
+    /* ===========================
+       VIEW DETAIL
+    =========================== */
 
     async function viewOrderDetail(orderId) {
-        const modalEl = document.getElementById("orderDetailModal");
-        const modal = new bootstrap.Modal(modalEl);
-        const content = document.getElementById("orderDetailContent");
+        const modal = new bootstrap.Modal(orderDetailModal);
+        orderDetailContent.innerHTML = "Đang tải...";
 
-        content.innerHTML = "<p class='text-center text-muted'>Đang tải...</p>";
+        const res = await fetch(API_BASE + `/orders/${orderId}`);
+        const o = await res.json();
 
-        try {
-            const res = await fetch(`${API_BASE}/orders/${orderId}`);
-            const o = await res.json();
+        const mRes = await fetch(API_BASE + "/menu-items");
+        const menuList = await mRes.json();
 
-            const mRes = await fetch(`${API_BASE}/menu-items`);
-            const menuList = await mRes.json();
+        orderDetailContent.innerHTML = `
+            <p><b>ID:</b> ${o.id}</p>
+            <p><b>Khách hàng:</b> ${o.customerName}</p>
+            <p><b>Điện thoại:</b> ${o.customerPhone}</p>
+            <p><b>Địa chỉ:</b> ${o.customerAddress}</p>
+            <p><b>Nhà hàng:</b> ${o.restaurant?.name}</p>
+            <p><b>Trạng thái:</b> ${o.status}</p>
 
-            content.innerHTML = `
-                <h5 class="mb-3">Thông tin đơn hàng</h5>
-                <p><b>ID:</b> ${o.id}</p>
-                <p><b>Khách hàng:</b> ${o.customerName}</p>
-                <p><b>Điện thoại:</b> ${o.customerPhone}</p>
-                <p><b>Địa chỉ:</b> ${o.customerAddress}</p>
-                <p><b>Nhà hàng:</b> ${o.restaurant?.name}</p>
-                <p><b>Trạng thái:</b> ${o.status}</p>
+            <h6 class="mt-3"><b>Món ăn</b></h6>
+            <ul class="list-group mb-3">
+                ${o.items.map(i=>{
+                    const m = menuList.find(x=>x.id===i.menuItemId);
+                    return `
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>${m?.name || "Không rõ"} × ${i.quantity}</span>
+                            <span>${(m?.price||0).toLocaleString()} ₫</span>
+                        </li>`;
+                }).join("")}
+            </ul>
 
-                <h6 class="mt-4"><b>Danh sách món</b></h6>
-                <ul class="list-group mb-3">
-                    ${o.items.map(i => {
-                        const m = menuList.find(x => x.id === i.menuItemId);
-                        return `
-                            <li class="list-group-item d-flex justify-content-between">
-                                <div>${m?.name || "Không rõ"} × ${i.quantity}</div>
-                                <div>${(m?.price || 0).toLocaleString()}₫</div>
-                            </li>
-                        `;
-                    }).join("")}
-                </ul>
+            <h5 class="text-end">Tổng: <b>${o.totalAmount.toLocaleString()} ₫</b></h5>
+        `;
 
-                <h5 class="text-end">Tổng tiền: <b>${o.totalAmount?.toLocaleString()}₫</b></h5>
-            `;
-
-            modal.show();
-
-        } catch (err) {
-            content.innerHTML = `<p class="text-danger">Lỗi tải chi tiết đơn hàng!</p>`;
-        }
+        modal.show();
     }
 
-    // ============================
-    // DELETE ORDER
-    // ============================
+    /* ===========================
+       DELETE ORDER
+    =========================== */
 
     async function deleteOrder(id) {
-        if (!confirm("Bạn có chắc muốn xóa đơn này?")) return;
-        await fetch(`${API_BASE}/orders/${id}`, { method: "DELETE" });
+        if (!confirm("Xóa đơn?")) return;
+        await fetch(API_BASE + `/orders/${id}`, {method:"DELETE"});
         loadOrders();
     }
 
-    // ============================
-    // FIX MODAL — CLEAN BACKDROP (1 bản duy nhất)
-    // ============================
-
-    document.addEventListener("hidden.bs.modal", function () {
-        document.querySelectorAll(".modal-backdrop").forEach(e => e.remove());
+    /* ===========================
+       CLEAN BACKDROP FIX
+    =========================== */
+    document.addEventListener("hidden.bs.modal", ()=>{
+        document.querySelectorAll(".modal-backdrop").forEach(e=>e.remove());
         document.body.classList.remove("modal-open");
         document.body.style.overflow = "";
     });
 
-    // ============================
-    // INIT
-    // ============================
+    /* ===========================
+       INIT
+    =========================== */
 
-    (async () => {
+    (async ()=>{
         await loadUsers();
         await loadRestaurants();
         await loadMenuItems();
