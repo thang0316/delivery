@@ -1,11 +1,10 @@
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css" />
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
 
 <div class="container p-3">
-
     <h3 class="text-primary mb-3">🚚 Quản lý Giao hàng</h3>
 
-    <!-- Form thêm giao hàng -->
     <div class="p-3 border bg-white rounded mb-3">
         <h5 class="text-success mb-3">➕ Thêm giao hàng</h5>
         <div class="row g-2">
@@ -25,9 +24,8 @@
         </div>
     </div>
 
-    <!-- Form cập nhật vị trí giả lập -->
     <div class="p-3 border bg-white rounded mb-3">
-        <h5 class="text-info mb-3">📍 Cập nhật vị trí giả lập Drone</h5>
+        <h5 class="text-info mb-3">📍 Cập nhật vị trí Drone</h5>
         <div class="row g-2">
             <div class="col-md-3">
                 <select id="deliverySelectLocation" class="form-select">
@@ -46,12 +44,8 @@
         </div>
     </div>
 
-    <!-- Bản đồ -->
-    <div id="deliveryMap" style="height: 400px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-        <div class="d-flex align-items-center justify-content-center h-100 bg-light text-muted">Bản đồ sẽ tải khi có delivery...</div>
-    </div>
+    <div id="deliveryMap" style="height: 400px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"></div>
 
-    <!-- Danh sách giao hàng -->
     <table class="table table-striped align-middle">
         <thead class="table-primary">
         <tr>
@@ -70,309 +64,213 @@
         <tr><td colspan="9" class="text-center text-muted">Đang tải...</td></tr>
         </tbody>
     </table>
-
 </div>
 
 <script>
-
-    var API_BASE = window.apiBase;
+    var API = window.apiBase || "http://localhost:8080/api";
     var map = null;
-    var markers = {};
+    var mapInit = false;
 
     function initMap() {
-        if(map) return; // Chỉ init một lần
+        if(mapInit || !window.L) return;
+        mapInit = true;
         
-        map = L.map('deliveryMap', {
-            center: [21.0285, 105.8542], // Hà Nội
-            zoom: 13
-        });
-
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors',
-            maxZoom: 19
-        }).addTo(map);
-
-        // Click map để cập nhật vị trí
-        map.on('click', function(e) {
-            let selectedDelivery = document.getElementById("deliverySelectLocation").value;
-            if(!selectedDelivery) {
-                alert("Vui lòng chọn delivery trước!");
-                return;
-            }
-            
-            const lat = e.latlng.lat;
-            const lng = e.latlng.lng;
-            
-            document.getElementById("simLatitude").value = lat.toFixed(6);
-            document.getElementById("simLongitude").value = lng.toFixed(6);
-            
-            // Auto cập nhật
-            updateSimulatedLocation();
-        });
+        try {
+            map = L.map('deliveryMap', {center: [21.0285, 105.8542], zoom: 13});
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom: 19}).addTo(map);
+            console.log("✅ Map ready");
+        } catch(e) {
+            console.error("Map error:", e);
+            createPlaceholder();
+        }
+    }
+    
+    function createPlaceholder() {
+        document.getElementById('deliveryMap').innerHTML = 
+            '<div style="width:100%;height:100%;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;color:white;text-align:center;padding:20px;box-sizing:border-box"><div><div style="font-size:24px">🗺️</div><div>Map unavailable</div></div></div>';
     }
 
-    function updateMapMarkers(deliveries) {
-        if(!map) initMap();
-
-        // Xóa markers cũ
-        Object.keys(markers).forEach(key => {
-            map.removeLayer(markers[key]);
-        });
-        markers = {};
-
-        // Thêm markers mới
-        if(deliveries.length > 0) {
-            deliveries.forEach(d => {
+    function updateMarkers(data) {
+        if(!map) return;
+        try {
+            // Clear old markers
+            if(map._layers) {
+                Object.keys(map._layers).forEach(key => {
+                    let layer = map._layers[key];
+                    if(layer && layer instanceof L.Marker) {
+                        map.removeLayer(layer);
+                    }
+                });
+            }
+            
+            data.forEach(d => {
                 if(d.currentLatitude && d.currentLongitude) {
-                    var marker = L.marker([d.currentLatitude, d.currentLongitude], {
-                        icon: L.icon({
-                            iconUrl: 'https://cdn-icons-png.flaticon.com/512/3597/3597911.png',
-                            iconSize: [32, 32],
-                            popupAnchor: [0, -15]
-                        })
+                    // Create HTML icon with drone emoji
+                    var customIcon = L.divIcon({
+                        html: `<div style="background:#0d6efd; color:white; padding:4px 8px; border-radius:50%; text-align:center; font-weight:bold; width:24px; height:24px; display:flex; align-items:center; justify-content:center;">🚁</div>`,
+                        iconSize: [32, 32],
+                        className: 'drone-marker'
                     });
-
-                    var statusColor = d.status === 'DELIVERING' ? '#0d6efd' : 
-                                     d.status === 'COMPLETED' ? '#198754' : '#dc3545';
                     
-                    marker.bindPopup(`
-                        <div style="font-size: 12px;">
-                            <strong>Delivery #${d.id}</strong><br>
-                            Order: #${d.order?.id || '-'}<br>
-                            Drone: ${d.drone?.model || '-'}<br>
-                            <span style="color: ${statusColor}; font-weight: bold;">${d.status}</span><br>
-                            Vĩ độ: ${d.currentLatitude.toFixed(6)}<br>
-                            Kinh độ: ${d.currentLongitude.toFixed(6)}
-                        </div>
-                    `);
-
-                    marker.addTo(map);
-                    markers['delivery_' + d.id] = marker;
+                    L.marker([d.currentLatitude, d.currentLongitude], {
+                        icon: customIcon
+                    }).bindPopup(`<small>Delivery #${d.id}<br>Order: #${d.order?.id}<br>Status: <strong>${d.status}</strong></small>`).addTo(map);
                 }
             });
-
-            // Auto fit bounds
-            if(Object.keys(markers).length > 0) {
-                var group = new L.featureGroup(Object.values(markers));
-                map.fitBounds(group.getBounds().pad(0.1));
-            }
+            
+            console.log("✅ Markers updated:", data.length);
+        } catch(e) { 
+            console.error("Marker error:", e); 
         }
     }
 
     function loadOrders() {
-        var select = document.getElementById("orderSelectDelivery");
-
-        fetch(API_BASE + "/orders")
+        fetch(API + "/orders")
             .then(r => r.json())
             .then(data => {
-                // Chỉ hiển thị đơn hàng đã được xác nhận (CONFIRMED)
-                const confirmedOrders = data.filter(o => o.status === 'CONFIRMED');
-                
-                if(confirmedOrders.length === 0) {
-                    select.innerHTML = `<option disabled selected>Không có đơn hàng cần giao</option>`;
-                } else {
-                    select.innerHTML = confirmedOrders.map(o =>
-                        `<option value="${o.id}" data-restaurant-id="${o.restaurant?.id || ''}">#${o.id} - ${o.customer?.fullName || "Unknown"}</option>`
-                    ).join("");
-                    
-                    // Sau khi load orders, filter drone cho order đầu tiên
-                    setTimeout(() => {
-                        select.selectedIndex = 1;
-                        filterDronesByRestaurant();
-                    }, 100);
-                }
-                
-                // Lắng nghe khi chọn order để filter drone
-                select.addEventListener('change', filterDronesByRestaurant);
+                const orders = data.filter(o => o.status === 'CONFIRMED');
+                let html = orders.map(o => `<option value="${o.id}" data-rid="${o.restaurant?.id}">#${o.id} - ${o.customer?.fullName}</option>`).join("");
+                document.getElementById("orderSelectDelivery").innerHTML = html || '<option disabled>No orders</option>';
+                document.getElementById("orderSelectDelivery").addEventListener('change', filterDrones);
             })
-            .catch(err => {
-                console.error("Lỗi load orders:", err);
-                select.innerHTML = `<option disabled selected>Lỗi tải đơn hàng</option>`;
-            });
+            .catch(e => console.error(e));
     }
 
-    function filterDronesByRestaurant() {
-        var orderSelect = document.getElementById("orderSelectDelivery");
-        var selectedOption = orderSelect.options[orderSelect.selectedIndex];
+    function filterDrones() {
+        var opt = document.querySelector('#orderSelectDelivery [selected]') || document.querySelector('#orderSelectDelivery option:checked');
+        if(!opt) return;
+        var rid = opt.getAttribute('data-rid');
         
-        // Bỏ qua nếu là disabled option
-        if(selectedOption.disabled) {
-            console.warn("⚠️ Selected option is disabled, skipping...");
-            return;
-        }
-        
-        var restaurantId = selectedOption.getAttribute('data-restaurant-id');
-        
-        console.log("Selected order:", selectedOption.value, "Restaurant ID:", restaurantId);
-        
-        if(!restaurantId || restaurantId.trim() === '') {
-            alert("⚠️ Đơn hàng này không có thông tin nhà hàng! Vui lòng kiểm tra dữ liệu order.");
-            return;
-        }
-        
-        var droneSelect = document.getElementById("droneSelect");
-        
-        // Filter drone của nhà hàng
-        fetch(API_BASE + "/drones")
+        fetch(API + "/drones")
             .then(r => r.json())
             .then(data => {
-                const restaurantDrones = data.filter(d => d.restaurant?.id == restaurantId && d.status === 'AVAILABLE');
-                
-                console.log("Filter drones cho nhà hàng:", restaurantId, "→", restaurantDrones.length, "drone");
-                
-                if(restaurantDrones.length === 0) {
-                    droneSelect.innerHTML = `<option disabled selected>Không có drone sẵn sàng của nhà hàng này</option>`;
-                } else {
-                    droneSelect.innerHTML = restaurantDrones.map(d =>
-                        `<option value="${d.id}">${d.model}</option>`
-                    ).join("");
-                }
-            })
-            .catch(err => {
-                console.error("Lỗi fetch drones:", err);
-                droneSelect.innerHTML = `<option disabled selected>Lỗi tải drone</option>`;
+                const drones = data.filter(d => d.restaurant?.id == rid && d.status === 'AVAILABLE');
+                let html = drones.map(d => `<option value="${d.id}">${d.model}</option>`).join("");
+                document.getElementById("droneSelect").innerHTML = html || '<option disabled>No drones</option>';
             });
-    }
-
-    function loadDrones() {
-        // Không cần pre-load nữa vì không dùng cache
     }
 
     function loadDeliveries() {
-        var tbody = document.getElementById("deliveryTable");
-        var selectLocation = document.getElementById("deliverySelectLocation");
-
-        fetch(API_BASE + "/deliveries")
+        fetch(API + "/deliveries")
             .then(r => r.json())
             .then(data => {
-                updateMapMarkers(data);
+                console.log("📦", data.length, "deliveries");
+                // Don't update markers here, wait for map init
+                // updateMarkers(data);
                 
-                // Populate location selector
-                selectLocation.innerHTML = `<option disabled selected>Chọn delivery...</option>` + 
-                    data.map(d =>
-                        `<option value="${d.id}">#${d.id} - ${d.drone?.model || "Drone"}</option>`
-                    ).join("");
-
-                tbody.innerHTML = data.map(d => `
-                    <tr>
-                        <td>${d.id}</td>
-                        <td>#${d.order?.id || "-"}</td>
-                        <td>${d.drone?.model || "-"}</td>
-                        <td>${d.currentLatitude ? d.currentLatitude.toFixed(6) : "-"}</td>
-                        <td>${d.currentLongitude ? d.currentLongitude.toFixed(6) : "-"}</td>
-                        <td>
-                            <select class="form-select form-select-sm" onchange="changeDeliveryStatus('${d.id}', this.value)">
-                                <option value="DELIVERING" ${d.status === 'DELIVERING' ? 'selected' : ''}>DELIVERING</option>
-                                <option value="COMPLETED" ${d.status === 'COMPLETED' ? 'selected' : ''}>COMPLETED</option>
-                                <option value="CANCELED" ${d.status === 'CANCELED' ? 'selected' : ''}>CANCELED</option>
-                            </select>
-                        </td>
-                        <td>${d.startTime || "-"}</td>
-                        <td>${d.endTime || "-"}</td>
-                        <td>
-                            <button class="btn btn-sm btn-danger" onclick="deleteDelivery('${d.id}')">Xóa</button>
-                        </td>
-                    </tr>
-                `).join("");
+                let opts = data.map(d => `<option value="${d.id}">#${d.id}</option>`).join("");
+                document.getElementById("deliverySelectLocation").innerHTML = '<option disabled selected>Choose...</option>' + opts;
+                
+                let rows = data.map(d => `<tr>
+                    <td>${d.id}</td>
+                    <td>#${d.order?.id || "-"}</td>
+                    <td>${d.drone?.model || "-"}</td>
+                    <td>${d.currentLatitude?.toFixed(6) || "-"}</td>
+                    <td>${d.currentLongitude?.toFixed(6) || "-"}</td>
+                    <td><select class="form-select form-select-sm" onchange="changeStatus('${d.id}', this.value)">
+                        <option value="DELIVERING" ${d.status === 'DELIVERING' ? 'selected' : ''}>DELIVERING</option>
+                        <option value="COMPLETED" ${d.status === 'COMPLETED' ? 'selected' : ''}>COMPLETED</option>
+                        <option value="CANCELED" ${d.status === 'CANCELED' ? 'selected' : ''}>CANCELED</option>
+                    </select></td>
+                    <td>${d.startTime || "-"}</td>
+                    <td>${d.endTime || "-"}</td>
+                    <td><button class="btn btn-sm btn-danger" onclick="deleteDelivery('${d.id}')">Delete</button></td>
+                </tr>`).join("");
+                document.getElementById("deliveryTable").innerHTML = rows || '<tr><td colspan="9" class="text-center">No deliveries</td></tr>';
+                
+                // Update markers after map init
+                window.deliveriesData = data;
+                if(map) updateMarkers(data);
             });
     }
 
     function createDelivery() {
-
-        var data = {
-            orderId: document.getElementById("orderSelectDelivery").value,
-            droneId: document.getElementById("droneSelect").value,
-            currentLatitude: 0,
-            currentLongitude: 0
-        };
-
-        if(!data.orderId || !data.droneId) {
-            alert("Vui lòng chọn đơn hàng và drone!");
-            return;
-        }
-
-        fetch(API_BASE + "/deliveries", {
-            method:"POST",
-            headers:{"Content-Type":"application/json"},
-            body: JSON.stringify(data)
-        })
-        .then(r => {
-            if(r.ok) {
-                loadDeliveries();
-                alert("Đã thêm giao hàng!");
-                document.getElementById("orderSelectDelivery").value = "";
-                document.getElementById("droneSelect").value = "";
-            } else {
-                alert("Lỗi: " + r.statusText);
-            }
-        });
+        let oid = document.getElementById("orderSelectDelivery").value;
+        let did = document.getElementById("droneSelect").value;
+        if(!oid || !did) { alert("Select order & drone"); return; }
+        
+        fetch(API + "/deliveries", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({orderId: oid, droneId: did, currentLatitude: 0, currentLongitude: 0})
+        }).then(r => r.ok && loadDeliveries());
     }
 
-    function changeDeliveryStatus(deliveryId, newStatus) {
-        fetch(API_BASE + "/deliveries/" + deliveryId + "/status?status=" + newStatus, {
-            method: "PUT",
-            headers: {"Content-Type": "application/json"}
-        })
-        .then(r => {
-            if(r.ok) {
-                alert("Cập nhật thành công!");
+    function changeStatus(id, status) {
+        fetch(API + "/deliveries/" + id + "/status?status=" + status, {method: "PUT"})
+            .then(r => {
+                if (!r.ok) {
+                    alert("❌ Lỗi cập nhật: " + r.status);
+                    loadDeliveries(); // reload để restore trạng thái cũ
+                    return;
+                }
+                console.log("✅ Status updated:", status);
                 loadDeliveries();
-            } else {
-                alert("Lỗi: " + r.statusText);
+            })
+            .catch(e => {
+                alert("❌ Error: " + e.message);
                 loadDeliveries();
-            }
-        })
-        .catch(err => {
-            alert("Lỗi: " + err.message);
-            loadDeliveries();
-        });
+            });
     }
 
-    function deleteDelivery(deliveryId) {
-        if(!confirm("Bạn có chắc muốn xóa?")) return;
-
-        fetch(API_BASE + "/deliveries/" + deliveryId, {
-            method: "DELETE"
-        })
-        .then(() => {
-            loadDeliveries();
-            alert("Đã xóa!");
-        });
+    function deleteDelivery(id) {
+        if(!confirm("Delete?")) return;
+        fetch(API + "/deliveries/" + id, {method: "DELETE"})
+            .then(() => loadDeliveries());
     }
 
     function updateSimulatedLocation() {
-        const deliveryId = document.getElementById("deliverySelectLocation").value;
-        const latitude = parseFloat(document.getElementById("simLatitude").value);
-        const longitude = parseFloat(document.getElementById("simLongitude").value);
-
-        if(!deliveryId) {
-            alert("Vui lòng chọn delivery!");
-            return;
+        let did = document.getElementById("deliverySelectLocation").value;
+        let lat = parseFloat(document.getElementById("simLatitude").value);
+        let lng = parseFloat(document.getElementById("simLongitude").value);
+        
+        if(!did || isNaN(lat) || isNaN(lng)) { 
+            alert("❌ Select delivery & enter coords"); 
+            return; 
         }
-
-        if(isNaN(latitude) || isNaN(longitude)) {
-            alert("Vui lòng nhập toạ độ hợp lệ!");
-            return;
-        }
-
-        fetch(API_BASE + "/deliveries/" + deliveryId + "/location?latitude=" + latitude + "&longitude=" + longitude, {
+        
+        fetch(API + "/deliveries/" + did + "/location?latitude=" + lat + "&longitude=" + lng, {
             method: "PUT",
             headers: {"Content-Type": "application/json"}
         })
         .then(r => {
-            if(r.ok) {
-                alert("Cập nhật vị trí thành công!");
-                loadDeliveries();
-            } else {
-                alert("Lỗi: " + r.statusText);
+            if (!r.ok) {
+                alert("❌ Lỗi cập nhật vị trí: " + r.status);
+                return;
             }
+            alert("✅ Vị trí cập nhật thành công!");
+            console.log("✅ Location updated to:", lat, lng);
+            loadDeliveries();
         })
-        .catch(err => {
-            alert("Lỗi: " + err.message);
+        .catch(e => {
+            alert("❌ Error: " + e.message);
+            console.error("Location update error:", e);
         });
     }
 
     loadOrders();
     loadDeliveries();
-
+    
+    // Lazy init map - chỉ load khi container visible
+    function lazyInitMap() {
+        var container = document.getElementById('deliveryMap');
+        if(!container) return;
+        
+        // Check if visible
+        var rect = container.getBoundingClientRect();
+        if(rect.top < window.innerHeight && rect.bottom > 0 && container.offsetHeight > 0) {
+            if(window.L && !mapInit) {
+                console.log("📍 Map visible, initializing...");
+                initMap();
+            }
+        }
+    }
+    
+    // Trigger on scroll
+    window.addEventListener('scroll', lazyInitMap, {passive: true});
+    
+    // Also try after 300ms
+    setTimeout(() => {
+        if(window.L) lazyInitMap();
+    }, 300);
 </script>

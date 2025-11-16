@@ -235,17 +235,26 @@
             return;
         }
 
-        await fetch(`${API_BASE}/orders/${orderId}/status`, {
-            method:"PUT",
-            headers:{"Content-Type":"application/json"},
-            body:JSON.stringify({status:newStatus})
-        });
+        try {
+            const res = await fetch(`${API_BASE}/orders/${orderId}/status?status=${newStatus}`, {
+                method:"PUT",
+                headers:{"Content-Type":"application/json"}
+            });
 
-        alert("Cập nhật thành công!");
+            if (!res.ok) {
+                throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+            }
 
-        if (newStatus === "COMPLETED") selectEl.setAttribute("disabled", true);
+            alert("✅ Cập nhật thành công!");
+            selectEl.setAttribute("data-old", newStatus);
 
-        selectEl.setAttribute("data-old", newStatus);
+            if (newStatus === "COMPLETED") {
+                selectEl.setAttribute("disabled", true);
+            }
+        } catch (err) {
+            alert("❌ Lỗi: " + err.message);
+            selectEl.value = oldStatus;
+        }
     }
 
     /* ===========================
