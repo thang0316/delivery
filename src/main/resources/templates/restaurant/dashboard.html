@@ -5,6 +5,9 @@
     <title>Dashboard | Restaurant</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <style>
         body { background: #eef2f5; font-family: "Segoe UI"; }
 
@@ -56,35 +59,79 @@
             <h2 id="revenue">0 ₫</h2>
         </div></div>
     </div>
+
+    <!-- ====================== BIỂU ĐỒ ====================== -->
+    <div class="row mt-4">
+        <div class="col-7">
+            <div class="card-box">
+                <h5>📊 Doanh thu theo ngày</h5>
+                <canvas id="chartRevenue"></canvas>
+            </div>
+        </div>
+
+        <div class="col-5">
+            <div class="card-box">
+                <h5>📈 Tỷ lệ đơn hàng</h5>
+                <canvas id="chartOrders"></canvas>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 <script>
     const restaurantId = localStorage.getItem("restaurantId");
 
+    /* ======================================
+           BIẾN DÙNG CHO BIỂU ĐỒ
+    ====================================== */
+    let completedCount = 0;
+    let processingCount = 0;
+    let cancelledCount = 0;
+
+    let revenuePerDay = {};
+
     /* ================================
-           1) Tổng đơn hàng (chỉ tính đã thanh toán)
+           1) Tổng đơn hàng + DOANH THU
     ================================= */
     async function loadOrderStats() {
         const orderRes = await fetch(`/api/orders`);
         const list = await orderRes.json();
         const myOrders = list.filter(o => o.restaurant.id === restaurantId);
-        
+
         let paidOrders = [];
         let totalRevenue = 0;
-        
+
         for(let order of myOrders) {
+
+            // ----- đếm trạng thái để vẽ biểu đồ -----
+            if(order.status === "COMPLETED") completedCount++;
+            if(order.status === "PROCESSING") processingCount++;
+            if(order.status === "CANCELLED") cancelledCount++;
+
+            // ----- load payment -----
             const paymentRes = await fetch(`/api/payments/order/${order.id}`);
             const payments = await paymentRes.json();
             const completedPayment = payments.find(p => p.status === 'COMPLETED');
-            
+
+            // ----- đơn đã thanh toán -----
             if(completedPayment && order.status === 'COMPLETED') {
                 paidOrders.push(order);
                 totalRevenue += order.totalAmount;
+
+                // gom doanh thu theo ngày
+                let day = order.createdAt?.substring(0,10);
+                if(day){
+                    if(!revenuePerDay[day]) revenuePerDay[day] = 0;
+                    revenuePerDay[day] += order.totalAmount;
+                }
             }
         }
-        
+
         orderCount.innerText = paidOrders.length;
         revenue.innerText = totalRevenue.toLocaleString("vi-VN") + " ₫";
+
+        drawCharts();
     }
     loadOrderStats();
 
@@ -96,6 +143,38 @@
         .then(list => {
             droneActive.innerText = list.filter(x => x.status === "AVAILABLE").length;
         });
+
+    /* ================================
+           3) VẼ BIỂU ĐỒ
+    ================================= */
+    function drawCharts() {
+
+        // ===== Biểu đồ doanh thu theo ngày =====
+        new Chart(document.getElementById("chartRevenue"), {
+            type: "bar",
+            data: {
+                labels: Object.keys(revenuePerDay),
+                datasets: [{
+                    label: "Doanh thu (₫)",
+                    data: Object.values(revenuePerDay),
+                    backgroundColor: "#0d6efd"
+                }]
+            }
+        });
+
+        // ===== Biểu đồ trạng thái đơn hàng =====
+        new Chart(document.getElementById("chartOrders"), {
+            type: "pie",
+            data: {
+                labels: ["Hoàn thành", "Đang xử lý", "Đã hủy"],
+                datasets: [{
+                    data: [completedCount, processingCount, cancelledCount],
+                    backgroundColor: ["#28a745", "#ffc107", "#dc3545"]
+                }]
+            }
+        });
+    }
+
 </script>
 
 </body>

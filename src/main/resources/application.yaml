@@ -10,7 +10,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update   # create, create-drop, update, validate
+      ddl-auto: update
     show-sql: true
     properties:
       hibernate:
@@ -21,3 +21,9 @@ spring:
     prefix: classpath:/templates/
     suffix: .html
     cache: false
+# VNPay configuration (fill with your credentials)
+vnpay:
+  vnp-tmn-code: "5C9DFPOH"
+  vnp-hash-secret: "FEYZ5TCZKQQ700BB8ZXFAIGRACW09UH7"
+  vnp-url: "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html"
+  vnp-return-url: "http://localhost:8080/api/payments/vnpay/return"
