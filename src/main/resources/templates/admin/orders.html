@@ -18,10 +18,6 @@
         .btn-gradient:hover { opacity:.9; transform:translateY(-1px); }
         .table thead { background-color:#0d6efd; color:white; }
         .table tbody tr:hover { background-color:#eef4ff; cursor:pointer; }
-        .badge-status { border-radius:20px; padding:0.4rem 0.7rem; font-weight:500; }
-        .badge-pending { background-color:#ffc107; color:#212529; }
-        .badge-completed { background-color:#28a745; color:white; }
-        .badge-cancelled { background-color:#dc3545; color:white; }
     </style>
 </head>
 
@@ -30,7 +26,7 @@
     <h2><i class="bi bi-basket2"></i> Quản lý Đơn hàng</h2>
     <p class="subtitle">Tạo, quản lý và theo dõi đơn hàng trong hệ thống</p>
 
-    <!-- 🔹 Form tạo đơn hàng -->
+    <!-- Form tạo đơn hàng -->
     <div class="card p-4 mb-4">
         <h5 class="text-primary mb-3"><i class="bi bi-plus-circle"></i> Tạo đơn hàng mới</h5>
 
@@ -66,7 +62,7 @@
         </div>
     </div>
 
-    <!-- 🔹 Bảng đơn hàng -->
+    <!-- Bảng đơn hàng -->
     <div class="card shadow-sm">
         <div class="card-body p-0">
             <table class="table table-hover mb-0 align-middle" id="orderTable">
@@ -87,7 +83,6 @@
     const API_BASE = "http://localhost:8080/api";
     let menuItems = [];
 
-    // 🟢 Load người dùng
     async function loadUsers() {
         try {
             const res = await fetch(`${API_BASE}/users`);
@@ -99,7 +94,6 @@
         }
     }
 
-    // 🟢 Load nhà hàng
     async function loadRestaurants() {
         try {
             const res = await fetch(`${API_BASE}/restaurants`);
@@ -111,7 +105,6 @@
         }
     }
 
-    // 🟢 Load món ăn
     async function loadMenuItems() {
         try {
             const res = await fetch(`${API_BASE}/menu-items`);
@@ -123,7 +116,7 @@
         }
     }
 
-    // 🟢 Load đơn hàng — FIX FULL NULL SAFE
+    // 🟢 Load đơn hàng — FIX FULL
     async function loadOrders() {
         const tbody = document.querySelector("#orderTable tbody");
         tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">Đang tải...</td></tr>`;
@@ -133,12 +126,13 @@
             const orders = await res.json();
 
             if (!orders.length) {
-                tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted fst-italic">Không có đơn hàng nào</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center">Không có đơn hàng</td></tr>`;
                 return;
             }
 
             tbody.innerHTML = orders.map(o => {
                 const total = Number(o.totalAmount || 0).toLocaleString();
+                const isCompleted = o.status === "COMPLETED";
 
                 return `
                 <tr>
@@ -146,8 +140,11 @@
                     <td>${o.customerName || o.customer?.username || "Không rõ"}</td>
                     <td>${o.restaurant?.name || "—"}</td>
                     <td>${total}₫</td>
+
                     <td>
-                        <select class="form-select form-select-sm" onchange="changeOrderStatus('${o.id}', this.value)">
+                        <select class="form-select form-select-sm"
+                                onchange="changeOrderStatus('${o.id}', this.value)"
+                                ${isCompleted ? "disabled" : ""}>
                             <option value="PENDING" ${o.status === 'PENDING' ? 'selected' : ''}>Chờ xử lý</option>
                             <option value="CONFIRMED" ${o.status === 'CONFIRMED' ? 'selected' : ''}>Đã xác nhận</option>
                             <option value="DELIVERING" ${o.status === 'DELIVERING' ? 'selected' : ''}>Đang giao</option>
@@ -155,6 +152,7 @@
                             <option value="CANCELED" ${o.status === 'CANCELED' ? 'selected' : ''}>Hủy</option>
                         </select>
                     </td>
+
                     <td>
                         <button class="btn btn-sm btn-outline-secondary" onclick="deleteOrder('${o.id}')">
                             <i class="bi bi-trash"></i>
@@ -162,56 +160,30 @@
                     </td>
                 </tr>`;
             }).join("");
+
         } catch (err) {
             tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger">Lỗi tải đơn hàng!</td></tr>`;
         }
     }
 
-    // 🟢 Tạo đơn hàng (chuẩn format C1)
-    async function createOrder() {
-        const userId = document.getElementById("userSelect").value;
-        const restaurantId = document.getElementById("restaurantSelect").value;
-        const customerName = document.getElementById("customerName").value.trim();
-        const customerPhone = document.getElementById("customerPhone").value.trim();
-        const customerAddress = document.getElementById("customerAddress").value.trim();
-        const menuItemId = document.getElementById("menuSelect").value;
-        const quantity = parseInt(document.getElementById("quantity").value);
+    // 🟢 Cập nhật trạng thái — FIX CONFIRM + RESTORE
+    async function changeOrderStatus(id, status) {
 
-        if (!userId || !restaurantId || !customerName || !customerPhone || !customerAddress || !menuItemId) {
-            alert("⚠️ Vui lòng nhập đầy đủ thông tin!");
-            return;
+        if (status === "COMPLETED") {
+            const confirmDone = confirm("Bạn có chắc muốn đánh dấu đơn hàng này là HOÀN THÀNH?");
+            if (!confirmDone) {
+                loadOrders();
+                return;
+            }
         }
 
-        const data = {
-            userId,
-            restaurantId,
-            customerName,
-            customerPhone,
-            customerAddress,
-            items: [{ menuItemId, quantity }]
-        };
-
         try {
-            const res = await fetch(`${API_BASE}/orders`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(data)
+            const res = await fetch(`${API_BASE}/orders/${id}/status?status=${status}`, {
+                method: "PUT"
             });
 
             if (!res.ok) throw new Error(await res.text());
 
-            alert("✅ Đơn hàng đã được tạo thành công!");
-            loadOrders();
-        } catch (err) {
-            alert("❌ Lỗi tạo đơn hàng!\n" + err.message);
-        }
-    }
-
-    // 🟢 Cập nhật trạng thái
-    async function changeOrderStatus(id, status) {
-        try {
-            const res = await fetch(`${API_BASE}/orders/${id}/status?status=${status}`, { method: "PUT" });
-            if (!res.ok) throw new Error(await res.text());
             loadOrders();
         } catch (err) {
             alert("❌ Lỗi cập nhật trạng thái!\n" + err.message);
@@ -219,25 +191,17 @@
         }
     }
 
-    // 🟢 Cập nhật trạng thái (legacy)
-    async function updateStatus(id, status) {
-        await changeOrderStatus(id, status);
-    }
-
-    // 🟢 Xóa đơn hàng
     async function deleteOrder(id) {
-        if (!confirm("Bạn có chắc muốn xóa đơn hàng này?")) return;
+        if (!confirm("Bạn có chắc muốn xóa đơn này?")) return;
         try {
             const res = await fetch(`${API_BASE}/orders/${id}`, { method: "DELETE" });
             if (!res.ok) throw new Error(await res.text());
-            alert("🗑️ Đơn hàng đã bị xóa!");
             loadOrders();
         } catch {
             alert("❌ Không thể xóa đơn hàng!");
         }
     }
 
-    // 🟢 Khởi chạy
     (async () => {
         await loadUsers();
         await loadRestaurants();
