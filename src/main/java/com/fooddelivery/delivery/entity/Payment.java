@@ -7,7 +7,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 @Entity
-
 public class Payment {
 	@Id
     @GeneratedValue(strategy = GenerationType.UUID)

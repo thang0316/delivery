@@ -54,9 +54,9 @@ public class OrderController {
 
     //  Cập nhật trạng thái đơn hàng
     @PutMapping("/{orderId}/status")
-    public Order updateStatus(@PathVariable Long orderId, @RequestParam Order.OrderStatus status) {
+    public Order updateStatus(@PathVariable Long orderId, @RequestParam String status) {
     	try {
-            return orderService.updateStatus(orderId, status);
+            return orderService.updateStatus(orderId, Order.OrderStatus.valueOf(status));
         } catch (RuntimeException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }

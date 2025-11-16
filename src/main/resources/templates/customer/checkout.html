@@ -63,9 +63,19 @@
         <h4 class="text-danger">Tổng: ${total.toLocaleString()}đ</h4>
 
         <h5 class="mt-3">Thông tin giao hàng</h5>
-        <input id="name" class="form-control mt-2" value="${user.firstName || ""} ${user.lastName || ""}">
-        <input id="phone" class="form-control mt-2" value="${user.phone || ""}" placeholder="Số điện thoại">
-        <input id="addr" class="form-control mt-2" placeholder="Địa chỉ">
+        <label class="form-label">Họ và tên <span class="text-danger">*</span></label>
+        <input id="name" class="form-control mt-2" value="${user.firstName || ""} ${user.lastName || ""}" required>
+        
+        <label class="form-label mt-2">Số điện thoại <span class="text-danger">*</span></label>
+        <input id="phone" class="form-control mt-2" value="${user.phone || ""}" placeholder="Nhập số điện thoại" required>
+        
+        <label class="form-label mt-2">Địa chỉ giao hàng <span class="text-danger">*</span></label>
+        <input id="addr" class="form-control mt-2" placeholder="Nhập địa chỉ giao hàng" required>
+
+        <label class="form-label mt-2">Phương thức thanh toán <span class="text-danger">*</span></label>
+        <select id="paymentMethod" class="form-control mt-2" required>
+            <option value="VNPAY">Thanh toán VNPay</option>
+        </select>
 
         <button onclick="submitOrder(${total})" class="btn btn-danger w-100 mt-3">
             Đặt hàng
@@ -85,7 +95,17 @@
         let user = getUser();
 
         if(cart.length === 0){
-            alert("Giỏ hàng trống!");
+            alert(" Giỏ hàng trống!");
+            return;
+        }
+
+        let name = document.getElementById("name").value.trim();
+        let phone = document.getElementById("phone").value.trim();
+        let addr = document.getElementById("addr").value.trim();
+
+        // Validation
+        if(!name || !phone || !addr){
+            alert(" Vui lòng nhập đầy đủ thông tin giao hàng!");
             return;
         }
 
@@ -94,9 +114,9 @@
         let payload = {
             userId: user.id,
             restaurantId: restaurantId,
-            customerName: document.getElementById("name").value,
-            customerPhone: document.getElementById("phone").value,
-            customerAddress: document.getElementById("addr").value,
+            customerName: name,
+            customerPhone: phone,
+            customerAddress: addr,
 
             items: cart.map(i => ({
                 menuItemId: Number(i.id),
@@ -104,26 +124,43 @@
             }))
         };
 
-        const res = await fetch("/api/orders", {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify(payload)
-        });
+        try {
+            const res = await fetch("/api/orders", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(payload)
+            });
 
-        const order = await res.json();
+            if(!res.ok){
+                alert(" Không thể tạo đơn hàng!");
+                return;
+            }
 
-        await fetch("/api/payments", {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({
-                orderId: order.id,
-                method: "CASH"
-            })
-        });
+            const order = await res.json();
+            const orderId = order.id;
 
-        localStorage.removeItem("cart");
+            // Redirect to VNPay
+            try {
+                const paymentRes = await fetch(`/api/payments/vnpay/create?orderId=${orderId}`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'}
+                });
 
-        alert("Đặt hàng thành công!");
-        switchPage("orders");
+                if(!paymentRes.ok){
+                    alert(" Không thể kết nối VNPay!");
+                    return;
+                }
+
+                const vnpayUrl = await paymentRes.text();
+                localStorage.removeItem("cart");
+                window.location.href = vnpayUrl;
+            } catch(error){
+                console.error("VNPay error:", error);
+                alert(" Lỗi: " + error.message);
+            }
+        } catch(error){
+            console.error("Submit order error:", error);
+            alert(" Lỗi: " + error.message);
+        }
     }
 </script>

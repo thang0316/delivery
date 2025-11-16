@@ -88,10 +88,23 @@
 
         <div class="mb-3">
             <label class="form-label">Chọn loại tài khoản</label>
-            <select id="role" class="form-select">
+            <select id="role" class="form-select" onchange="toggleRestaurantInfo()">
                 <option value="CUSTOMER">Khách hàng</option>
                 <option value="RESTAURANT">Chủ nhà hàng</option>
             </select>
+        </div>
+
+        <!-- Form nhà hàng (ẩn mặc định) -->
+        <div id="restaurantInfo" style="display: none;">
+            <div class="mb-3">
+                <label class="form-label">Tên nhà hàng <span class="text-danger">*</span></label>
+                <input type="text" id="restaurantName" class="form-control" placeholder="Nhập tên nhà hàng">
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">Địa chỉ nhà hàng</label>
+                <input type="text" id="restaurantAddress" class="form-control" placeholder="Nhập địa chỉ (tuỳ chọn)">
+            </div>
         </div>
 
         <button type="submit" class="btn btn-register w-100">Tạo tài khoản</button>
@@ -108,6 +121,18 @@
 
 
 <script>
+    // Toggle hiển thị form nhà hàng
+    function toggleRestaurantInfo() {
+        const role = document.getElementById("role").value;
+        const restaurantInfo = document.getElementById("restaurantInfo");
+        
+        if (role === "RESTAURANT") {
+            restaurantInfo.style.display = "block";
+        } else {
+            restaurantInfo.style.display = "none";
+        }
+    }
+
     async function registerUser() {
 
         const selectedRole = document.getElementById("role").value;
@@ -125,6 +150,18 @@
             password: document.getElementById("password").value.trim(),
             roleId: roleId
         };
+
+        // Nếu là nhà hàng, thêm thông tin nhà hàng
+        if (selectedRole === "RESTAURANT") {
+            data.restaurantName = document.getElementById("restaurantName").value.trim();
+            data.restaurantAddress = document.getElementById("restaurantAddress").value.trim();
+            
+            // Validate tên nhà hàng
+            if (!data.restaurantName) {
+                document.getElementById("error-msg").textContent = "⚠️ Vui lòng nhập tên nhà hàng!";
+                return;
+            }
+        }
 
         const errorMsg = document.getElementById("error-msg");
         const successMsg = document.getElementById("success-msg");

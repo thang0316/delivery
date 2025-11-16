@@ -147,19 +147,16 @@
                     <td>${o.restaurant?.name || "—"}</td>
                     <td>${total}₫</td>
                     <td>
-                        <span class="badge-status ${
-                            o.status === 'COMPLETED' ? 'badge-completed' :
-                            o.status === 'CANCELLED' ? 'badge-cancelled' : 'badge-pending'
-                        }">${o.status || 'PENDING'}</span>
+                        <select class="form-select form-select-sm" onchange="changeOrderStatus('${o.id}', this.value)">
+                            <option value="PENDING" ${o.status === 'PENDING' ? 'selected' : ''}>Chờ xử lý</option>
+                            <option value="CONFIRMED" ${o.status === 'CONFIRMED' ? 'selected' : ''}>Đã xác nhận</option>
+                            <option value="DELIVERING" ${o.status === 'DELIVERING' ? 'selected' : ''}>Đang giao</option>
+                            <option value="COMPLETED" ${o.status === 'COMPLETED' ? 'selected' : ''}>Hoàn thành</option>
+                            <option value="CANCELED" ${o.status === 'CANCELED' ? 'selected' : ''}>Hủy</option>
+                        </select>
                     </td>
                     <td>
-                        <button class="btn btn-sm btn-outline-success" onclick="updateStatus(${o.id}, 'COMPLETED')">
-                            <i class="bi bi-check2-circle"></i>
-                        </button>
-                        <button class="btn btn-sm btn-outline-danger" onclick="updateStatus(${o.id}, 'CANCELLED')">
-                            <i class="bi bi-x-circle"></i>
-                        </button>
-                        <button class="btn btn-sm btn-outline-secondary" onclick="deleteOrder(${o.id})">
+                        <button class="btn btn-sm btn-outline-secondary" onclick="deleteOrder('${o.id}')">
                             <i class="bi bi-trash"></i>
                         </button>
                     </td>
@@ -211,15 +208,20 @@
     }
 
     // 🟢 Cập nhật trạng thái
-    async function updateStatus(id, status) {
+    async function changeOrderStatus(id, status) {
         try {
             const res = await fetch(`${API_BASE}/orders/${id}/status?status=${status}`, { method: "PUT" });
             if (!res.ok) throw new Error(await res.text());
-            alert("✅ Cập nhật trạng thái thành công!");
             loadOrders();
-        } catch {
-            alert("❌ Lỗi khi cập nhật trạng thái!");
+        } catch (err) {
+            alert("❌ Lỗi cập nhật trạng thái!\n" + err.message);
+            loadOrders();
         }
+    }
+
+    // 🟢 Cập nhật trạng thái (legacy)
+    async function updateStatus(id, status) {
+        await changeOrderStatus(id, status);
     }
 
     // 🟢 Xóa đơn hàng

@@ -4,6 +4,8 @@ import com.fooddelivery.delivery.dto.request.LoginRequest;
 import com.fooddelivery.delivery.entity.User;
 import com.fooddelivery.delivery.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -11,8 +13,11 @@ import org.springframework.stereotype.Service;
 @Service
 public class LoginService {
 
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
+	@Autowired
+    private  UserRepository userRepository;
+	
+	@Autowired
+    private  PasswordEncoder passwordEncoder;
 
     public User login(LoginRequest request) {
 

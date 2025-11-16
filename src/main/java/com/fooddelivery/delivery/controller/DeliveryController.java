@@ -37,6 +37,13 @@ public class DeliveryController {
         return deliveryService.updateDelivery(id, request);
     }
 
+    @PutMapping("/{id}/status")
+    public Delivery updateDeliveryStatus(
+            @PathVariable String id,
+            @RequestParam String status) {
+        return deliveryService.updateStatus(id, Delivery.DeliveryStatus.valueOf(status));
+    }
+
     @DeleteMapping("/{id}")
     public void deleteDelivery(@PathVariable String id) {
         deliveryService.deleteDelivery(id);

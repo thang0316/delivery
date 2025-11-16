@@ -4,6 +4,8 @@ import com.fooddelivery.delivery.dto.request.LoginRequest;
 import com.fooddelivery.delivery.entity.User;
 import com.fooddelivery.delivery.service.LoginService;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -12,7 +14,8 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class LoginController {
 
-    private final LoginService loginService;
+	@Autowired
+    private LoginService loginService;
 
     @GetMapping("/login")
     public String loginPage() {

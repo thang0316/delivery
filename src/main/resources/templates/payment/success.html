@@ -86,8 +86,7 @@
             </svg>
         </div>
         
-        <h1>🎉 Thanh toán thành công!</h1>
-        <p class="text-muted">Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi</p>
+        <h1>Thanh toán thành công!</h1>
         
         <div class="order-info">
             <h5>📦 Thông tin đơn hàng</h5>
@@ -95,15 +94,18 @@
             <p><strong>Trạng thái:</strong> <span class="badge bg-success">Đã thanh toán</span></p>
             <p><strong>Thời gian:</strong> <span id="currentTime">...</span></p>
         </div>
-        
-        <p class="text-success mb-4">✅ Đơn hàng của bạn đang được xử lý và sẽ được giao sớm nhất!</p>
-        
-        <a href="/" class="btn-home">Về trang chủ</a>
+                
+        <a href="#" onclick="goToOrders(); return false;" class="btn-home">Xem đơn hàng</a>
         <br><br>
-        <a href="/payment/vnpay-test" class="text-muted" style="font-size: 14px;">Thử thanh toán lại</a>
+        <a href="#" onclick="window.location.href='/customer/dashboard'; return false;" class="text-muted" style="font-size: 14px;">Về trang chủ</a>
     </div>
     
     <script>
+        function goToOrders() {
+            localStorage.setItem('autoLoadOrders', 'true');
+            window.location.href = '/customer/dashboard';
+        }
+        
         // Lấy orderId từ URL
         const urlParams = new URLSearchParams(window.location.search);
         const orderId = urlParams.get('orderId');

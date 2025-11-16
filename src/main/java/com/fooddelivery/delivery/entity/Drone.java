@@ -18,7 +18,8 @@ public class Drone {
     public enum DroneStatus {
         AVAILABLE,   // Sẵn sàng nhận đơn
         DELIVERING,  // Đang giao hàng
-        CHARGING     // Đang sạc
+        CHARGING,    // Đang sạc
+        OFFLINE      // Ngoại tuyến
     }
 
     @Enumerated(EnumType.STRING)

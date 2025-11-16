@@ -11,44 +11,33 @@
             <th>Trạng thái</th>
             <th>Bắt đầu</th>
             <th>Kết thúc</th>
+            <th>Hành động</th>
         </tr>
         </thead>
         <tbody id="deliveryTable">
-        <tr><td colspan="6" class="text-center text-muted">Đang tải...</td></tr>
+        <tr><td colspan="7" class="text-center text-muted">Đang tải...</td></tr>
         </tbody>
     </table>
 
     <div class="mt-4 p-3 border bg-white rounded">
-        <h5 class="text-success mb-3">➕ Thêm giao hàng</h5>
+        <h5 class="text-success mb-3"> Thêm giao hàng</h5>
 
         <div class="row g-2">
 
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <select id="orderSelectDelivery" class="form-select">
                     <option disabled selected>Đang tải...</option>
                 </select>
             </div>
 
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <select id="droneSelect" class="form-select">
                     <option disabled selected>Đang tải...</option>
                 </select>
             </div>
 
-            <div class="col-md-2">
-                <input id="statusDelivery" class="form-control" placeholder="Trạng thái" />
-            </div>
-
-            <div class="col-md-2">
-                <input id="startTime" type="datetime-local" class="form-control" />
-            </div>
-
-            <div class="col-md-2">
-                <input id="endTime" type="datetime-local" class="form-control" />
-            </div>
-
-            <div class="col-12 mt-2 text-end">
-                <button onclick="createDelivery()" class="btn btn-primary px-4">Thêm</button>
+            <div class="col-md-4 text-end">
+                <button onclick="createDelivery()" class="btn btn-primary w-100">Thêm</button>
             </div>
 
         </div>
@@ -66,10 +55,16 @@
         fetch(API_BASE + "/orders")
             .then(r => r.json())
             .then(data => {
-
-                select.innerHTML = data.map(o =>
-                    `<option value="${o.id}">#${o.id} - ${o.customer?.fullName || "Unknown"}</option>`
-                ).join("");
+                // Chỉ hiển thị đơn hàng đã được xác nhận (CONFIRMED)
+                const confirmedOrders = data.filter(o => o.status === 'CONFIRMED');
+                
+                if(confirmedOrders.length === 0) {
+                    select.innerHTML = `<option disabled selected>Không có đơn hàng cần giao</option>`;
+                } else {
+                    select.innerHTML = confirmedOrders.map(o =>
+                        `<option value="${o.id}">#${o.id} - ${o.customer?.fullName || "Unknown"}</option>`
+                    ).join("");
+                }
             });
     }
 
@@ -97,9 +92,18 @@
                         <td>${d.id}</td>
                         <td>#${d.order?.id || "-"}</td>
                         <td>${d.drone?.model || "-"}</td>
-                        <td>${d.status}</td>
+                        <td>
+                            <select class="form-select form-select-sm" onchange="changeDeliveryStatus('${d.id}', this.value)">
+                                <option value="DELIVERING" ${d.status === 'DELIVERING' ? 'selected' : ''}>DELIVERING</option>
+                                <option value="COMPLETED" ${d.status === 'COMPLETED' ? 'selected' : ''}>COMPLETED</option>
+                                <option value="CANCELED" ${d.status === 'CANCELED' ? 'selected' : ''}>CANCELED</option>
+                            </select>
+                        </td>
                         <td>${d.startTime || "-"}</td>
                         <td>${d.endTime || "-"}</td>
+                        <td>
+                            <button class="btn btn-sm btn-danger" onclick="deleteDelivery('${d.id}')">Xóa</button>
+                        </td>
                     </tr>
                 `).join("");
             });
@@ -110,19 +114,61 @@
         var data = {
             orderId: document.getElementById("orderSelectDelivery").value,
             droneId: document.getElementById("droneSelect").value,
-            status: document.getElementById("statusDelivery").value,
-            startTime: document.getElementById("startTime").value,
-            endTime: document.getElementById("endTime").value
+            currentLatitude: 0,
+            currentLongitude: 0
         };
+
+        if(!data.orderId || !data.droneId) {
+            alert("Vui lòng chọn đơn hàng và drone!");
+            return;
+        }
 
         fetch(API_BASE + "/deliveries", {
             method:"POST",
             headers:{"Content-Type":"application/json"},
             body: JSON.stringify(data)
         })
+        .then(r => {
+            if(r.ok) {
+                loadDeliveries();
+                alert("Đã thêm giao hàng!");
+                document.getElementById("orderSelectDelivery").value = "";
+                document.getElementById("droneSelect").value = "";
+            } else {
+                alert("Lỗi: " + r.statusText);
+            }
+        });
+    }
+
+    function changeDeliveryStatus(deliveryId, newStatus) {
+        fetch(API_BASE + "/deliveries/" + deliveryId + "/status?status=" + newStatus, {
+            method: "PUT",
+            headers: {"Content-Type": "application/json"}
+        })
+        .then(r => {
+            if(r.ok) {
+                alert("Cập nhật thành công!");
+                loadDeliveries();
+            } else {
+                alert("Lỗi: " + r.statusText);
+                loadDeliveries();
+            }
+        })
+        .catch(err => {
+            alert("Lỗi: " + err.message);
+            loadDeliveries();
+        });
+    }
+
+    function deleteDelivery(deliveryId) {
+        if(!confirm("Bạn có chắc muốn xóa?")) return;
+
+        fetch(API_BASE + "/deliveries/" + deliveryId, {
+            method: "DELETE"
+        })
         .then(() => {
             loadDeliveries();
-            alert("Đã thêm giao hàng!");
+            alert("Đã xóa!");
         });
     }
 

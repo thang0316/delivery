@@ -124,8 +124,8 @@
             </ul>
         </div>
         
-        <a href="/payment/vnpay-test" class="btn-retry">🔄 Thử lại</a>
-        <a href="/" class="btn-home">🏠 Về trang chủ</a>
+        <a href="#" onclick="retryPayment(); return false;" class="btn-retry">Thanh toán lại</a>
+        <a href="#" onclick="goToDashboard(); return false;" class="btn-home">Về trang chủ</a>
     </div>
     
     <script>
@@ -146,6 +146,35 @@
             second: '2-digit'
         });
         document.getElementById('currentTime').textContent = timeString;
+
+        function retryPayment() {
+            if (orderId) {
+                fetch(`/api/payments/vnpay/create?orderId=${orderId}`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'}
+                }).then(r => {
+                    if(!r.ok) {
+                        alert("Không thể kết nối VNPay!");
+                        return;
+                    }
+                    return r.text();
+                }).then(vnpayUrl => {
+                    if(vnpayUrl && vnpayUrl.startsWith("http")) {
+                        window.location.href = vnpayUrl;
+                    } else {
+                        alert("Lỗi: Không thể tạo link thanh toán!");
+                    }
+                }).catch(e => {
+                    alert("Lỗi: " + e.message);
+                });
+            } else {
+                window.location.href = `/customer/dashboard`;
+            }
+        }
+
+        function goToDashboard() {
+            window.location.href = `/customer/dashboard`;
+        }
     </script>
 </body>
 </html>

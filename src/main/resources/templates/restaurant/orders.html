@@ -22,7 +22,6 @@
     <a href="/restaurant/menu">🍕 Menu</a>
     <a href="/restaurant/orders">📦 Đơn hàng</a>
     <a href="/restaurant/drones">🛩 Drone</a>
-    <a href="/restaurant/payments">💳 Thanh toán</a>
     <a href="/restaurant/profile">👤 Hồ sơ</a>
 </div>
 
@@ -39,10 +38,11 @@
                 <th>Tổng tiền</th>
                 <th>Trạng thái</th>
                 <th>Thời gian</th>
+                <th>Xác nhận đơn hàng</th>
             </tr>
             </thead>
             <tbody id="orderTable">
-            <tr><td colspan="6" class="text-center text-muted">Đang tải...</td></tr>
+            <tr><td colspan="7" class="text-center text-muted">Đang tải...</td></tr>
             </tbody>
         </table>
     </div>
@@ -51,24 +51,67 @@
 <script>
     const restaurantId = localStorage.getItem("restaurantId");
 
+    function translateStatus(status) {
+        const statusMap = {
+            'PENDING': 'Chờ xác nhận',
+            'CONFIRMED': 'Đã xác nhận',
+            'DELIVERING': 'Đang giao',
+            'COMPLETED': 'Hoàn thành',
+            'CANCELED': 'Đã hủy'
+        };
+        return statusMap[status] || status;
+    }
+
     function loadOrders(){
         fetch("/api/orders").then(r=>r.json()).then(list=>{
             orderTable.innerHTML="";
             list.filter(o=>o.restaurant?.id===restaurantId)
-                .forEach(o=>{
+                .forEach(async (o)=>{
+                    // Lấy thông tin thanh toán
+                    const paymentRes = await fetch(`/api/payments/order/${o.id}`);
+                    const payments = await paymentRes.json();
+                    const completedPayment = payments.find(p => p.status === 'COMPLETED');
+                    
+                    // Chỉ hiển thị đơn hàng đã thanh toán
+                    if(!completedPayment) return;
+                    
+                    let actionBtn = "";
+                    if(o.status === 'PENDING') {
+                        actionBtn = `<button class="btn btn-sm btn-success" onclick="confirmOrder(${o.id})">Xác nhận</button>`;
+                    } else {
+                        actionBtn = `<span class="text-muted">-</span>`;
+                    }
+
                     orderTable.innerHTML+=`
                         <tr>
                             <td>${o.id}</td>
                             <td>${o.customerName}</td>
                             <td>${o.customerPhone}</td>
                             <td>${o.totalAmount.toLocaleString()} ₫</td>
-                            <td>${o.status}</td>
-                            <td>${o.createdAt}</td>
+                            <td>${translateStatus(o.status)}</td>
+                            <td>${new Date(o.createdAt).toLocaleString("vi-VN")}</td>
+                            <td>${actionBtn}</td>
                         </tr>`;
                 });
         });
     }
     loadOrders();
+
+    // Xác nhận đơn hàng
+    async function confirmOrder(orderId) {
+        if(confirm("Xác nhận đơn hàng này?")) {
+            const res = await fetch(`/api/orders/${orderId}/status?status=CONFIRMED`, {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json'}
+            });
+            if(res.ok) {
+                alert("Đã xác nhận đơn hàng!");
+                loadOrders();
+            } else {
+                alert("Lỗi xác nhận đơn hàng!");
+            }
+        }
+    }
 </script>
 
 </body>

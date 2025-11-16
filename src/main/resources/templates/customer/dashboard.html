@@ -154,8 +154,17 @@
             background: #fff;
             border-radius: 14px;
             padding: 20px;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2), 0 10px 30px rgba(0,0,0,0.15);
             display: none;
+            position: fixed;
+            bottom: 10%;
+            left: 10%;
+            right: 10%;
+            width: 80%;
+            max-height: 40vh;
+            overflow-y: auto;
+            z-index: 1000;
+            border-radius: 14px;
         }
 
     </style>
@@ -168,7 +177,6 @@
     <div class="nav-item active-nav" onclick="showHome()">Trang chủ</div>
     <div class="nav-item" onclick="toggleCartPanel()">Giỏ hàng (<span id="cartCount">0</span>)</div>
     <div class="nav-item" onclick="switchPage('orders')">Đơn hàng</div>
-    <div class="nav-item" onclick="switchPage('payments')">Thanh toán</div>
     <div class="nav-item" onclick="switchPage('profile')">Tài khoản</div>
 </div>
 
@@ -200,7 +208,7 @@
 
     <!-- ======= CART PANEL ======= -->
     <div id="cartPanel">
-        <h3 class="mb-3">🛒 Giỏ hàng</h3>
+        <h3 class="mb-3"> Giỏ hàng</h3>
         <div id="cartBox"></div>
         <button class="btn btn-danger w-100 mt-3" onclick="goCheckout()">Tiến hành thanh toán</button>
     </div>
@@ -239,6 +247,16 @@
             (cartPanel.style.display === "none" || cartPanel.style.display === "") ? "block" : "none";
         loadCartPanel();
     }
+
+    // Ẩn giỏ hàng khi click bên ngoài
+    document.addEventListener('click', function(event) {
+        let isClickInsideCart = cartPanel.contains(event.target);
+        let isClickOnCartButton = event.target.closest('.nav-item') && event.target.textContent.includes('Giỏ hàng');
+        
+        if (!isClickInsideCart && !isClickOnCartButton && cartPanel.style.display === 'block') {
+            cartPanel.style.display = 'none';
+        }
+    });
 
     function loadCartPanel(){
         let cart = getCart();
@@ -281,110 +299,65 @@
     }
 
     /* ======================================
-                LOAD MENU ITEMS
+                LOAD RESTAURANTS
     ====================================== */
     async function loadMenu(){
+        // Load restaurants instead of menu items
+        const r = await fetch("/api/restaurants");
+        const restaurants = await r.json();
+        window._allRestaurants = restaurants;
 
-        const r = await fetch("/api/menu-items");
-        const items = await r.json();
+        // Load menu items for reference
+        const menuR = await fetch("/api/menu-items");
+        const items = await menuR.json();
         window._allMenuItems = items;
 
-        if(items.length === 0){
-            menuList.innerHTML = "<p class='text-muted'>Không có món ăn.</p>";
+        if(restaurants.length === 0){
+            menuList.innerHTML = "<p class='text-muted'>Không có nhà hàng nào.</p>";
             return;
         }
 
-        let cart = getCart();
-
-        let top4 = items.slice(0,4);
-        let gallery = items.slice(4);
-
-        /* ===== FEATURED ===== */
-        let featured = `
-        <h2 class="text-center mb-4" style="font-family:Georgia">Món ăn được yêu thích</h2>
-        <div class="featured-grid">
+        /* ===== RESTAURANT LIST ===== */
+        let html = `
+        <h2 class="text-center mb-4" style="font-family:Georgia">Danh sách nhà hàng</h2>
+        <div style="max-width:900px; margin:0 auto;">
         `;
 
-        top4.forEach(item => {
-            let id = item.id;
-            let rest = item.restaurant;
-            let img = "/images/" + item.imageUrl;
-            let qty = (cart.find(c=>c.id==id)?.qty) || 0;
+        restaurants.forEach(rest => {
+            // Get count of menu items for this restaurant
+            let itemCount = items.filter(x => x.restaurant.id === rest.id).length;
+            let rating = rest.rating || 5.0;
+            let isOpen = rest.active !== false; // default true nếu undefined
+            let statusText = isOpen ? "Mở cửa" : "Đóng cửa";
+            let statusColor = isOpen ? "#28a745" : "#dc3545";
 
-            featured += `
-            <div class="featured-card">
-                <img src="${img}" onclick="switchRestaurantPage('${rest.id}','${rest.name}')">
-
-                <h5 onclick="switchRestaurantPage('${rest.id}','${rest.name}')">${item.name}</h5>
-
-                <div style="font-size:14px;cursor:pointer;color:#555"
-                     onclick="switchRestaurantPage('${rest.id}','${rest.name}')">
-                     ${rest.name}
+            html += `
+            <div style="display:flex; gap:15px; background:#fff; border-radius:10px; padding:15px; margin-bottom:15px; box-shadow:0 2px 8px rgba(0,0,0,0.1); cursor:${isOpen ? 'pointer' : 'not-allowed'}; opacity:${isOpen ? '1' : '0.6'};" onclick="${isOpen ? `switchRestaurantPage('${rest.id}','${rest.name}')` : ''}">
+                <!-- Restaurant Info -->
+                <div style="flex:1;">
+                    <div style="display:flex; justify-content:space-between; align-items:start;">
+                        <div>
+                            <h5 style="margin:0; font-size:18px; font-weight:600;">${rest.name}</h5>
+                            <div style="display:flex; gap:15px; margin-top:8px; color:#666; font-size:14px;">
+                                <span>⭐ ${rating.toFixed(1)}</span>
+                                <span>${rest.address ? rest.address.substring(0, 30) + '...' : 'Không rõ'}</span>
+                                <span>📞 ${rest.phone}</span>
+                            </div>
+                            <div style="margin-top:8px; color:#999; font-size:13px;">
+                                ${itemCount} món ăn | <span style="color:${statusColor}; font-weight:bold;">${statusText}</span>
+                            </div>
+                        </div>
+                        <button class="btn btn-sm" style="background-color:${isOpen ? '#dc3545' : '#999'}; color:white; align-self:center;" onclick="event.stopPropagation(); ${isOpen ? `switchRestaurantPage('${rest.id}','${rest.name}')` : 'alert("Nhà hàng đang đóng cửa")'}" ${isOpen ? '' : 'disabled'}>
+                            ${isOpen ? 'Xem menu' : 'Đóng cửa'}
+                        </button>
+                    </div>
                 </div>
-
-                <p>${item.price.toLocaleString()}đ</p>
-
-                <div class="d-flex justify-content-center">
-                    <button class="btn btn-sm btn-outline-secondary"
-                        onclick="addQty(${id},'${item.name}',${item.price},'${img}','${rest.id}',-1)">−</button>
-
-                    <span class="mx-3" id="qty_${id}">${qty}</span>
-
-                    <button class="btn btn-sm btn-outline-secondary"
-                        onclick="addQty(${id},'${item.name}',${item.price},'${img}','${rest.id}',1)">+</button>
-                </div>
-
-                <button class="btn btn-danger btn-sm mt-2"
-                    onclick="buyNow(${id},'${item.name}',${item.price},'${img}','${rest.id}')">
-                    Mua ngay
-                </button>
             </div>`;
         });
 
-        featured += "</div>";
+        html += "</div>";
 
-        /* ===== GALLERY ===== */
-        let galleryHTML = `<div class="gallery-grid">`;
-
-        gallery.forEach(item => {
-            let id = item.id;
-            let rest = item.restaurant;
-            let img = "/images/" + item.imageUrl;
-            let qty = (cart.find(c=>c.id==id)?.qty) || 0;
-
-            galleryHTML += `
-            <div class="featured-card">
-                <img src="${img}" onclick="switchRestaurantPage('${rest.id}','${rest.name}')">
-
-                <h5 onclick="switchRestaurantPage('${rest.id}','${rest.name}')">${item.name}</h5>
-
-                <div style="font-size:14px;cursor:pointer;color:#555"
-                     onclick="switchRestaurantPage('${rest.id}','${rest.name}')">
-                     ${rest.name}
-                </div>
-
-                <p>${item.price.toLocaleString()}đ</p>
-
-                <div class="d-flex justify-content-center">
-                    <button class="btn btn-sm btn-outline-secondary"
-                        onclick="addQty(${id},'${item.name}',${item.price},'${img}','${rest.id}',-1)">−</button>
-
-                    <span class="mx-3" id="qty_${id}">${qty}</span>
-
-                    <button class="btn btn-sm btn-outline-secondary"
-                        onclick="addQty(${id},'${item.name}',${item.price},'${img}','${rest.id}',1)">+</button>
-                </div>
-
-                <button class="btn btn-danger btn-sm mt-2"
-                    onclick="buyNow(${id},'${item.name}',${item.price},'${img}','${rest.id}')">
-                    Mua ngay
-                </button>
-            </div>`;
-        });
-
-        galleryHTML += "</div>";
-
-        menuList.innerHTML = featured + galleryHTML;
+        menuList.innerHTML = html;
     }
 
     /* ======================================
@@ -400,48 +373,56 @@
     function renderRestaurantMenu(restId, restName){
         let all = window._allMenuItems || [];
         let cart = getCart();
-        let list = all.filter(x=>x.restaurant.id == restId);
+        let list = all.filter(x => x.restaurant.id == restId);
 
         let html = `
-        <h2 class="text-center mb-4" style="font-family:Georgia">
-            Danh sách món của nhà hàng ${restName}
-        </h2>
+        <button class="btn btn-secondary btn-sm mb-3" onclick="showHome()">
+            Quay lại
+        </button>
 
-        <div class="featured-grid">
+        <h2 class="text-center mb-4" style="font-family:Georgia">
+            ${restName}
+        </h2>
         `;
 
-        list.forEach(item => {
-            let img = "/images/" + item.imageUrl;
-            let qty = (cart.find(c=>c.id===item.id)?.qty) || 0;
+        if(list.length === 0){
+            html += `<p class='text-muted text-center'>Nhà hàng này hiện không có món ăn nào.</p>`;
+        } else {
+            html += `<div class="featured-grid">`;
 
-            html += `
-            <div class="featured-card">
-                <img src="${img}" onclick="switchRestaurantPage('${restId}','${restName}')">
+            list.forEach(item => {
+                let img = "/images/" + item.imageUrl;
+                let qty = (cart.find(c => c.id === item.id)?.qty) || 0;
 
-                <h5 onclick="switchRestaurantPage('${restId}','${restName}')">${item.name}</h5>
+                html += `
+                <div class="featured-card">
+                    <img src="${img}" style="cursor:pointer;">
 
-                <div style="font-size:14px;color:#666">${restName}</div>
+                    <h5>${item.name}</h5>
 
-                <p>${item.price.toLocaleString()}đ</p>
+                    <div style="font-size:14px;color:#666">${item.description || ''}</div>
 
-                <div class="d-flex justify-content-center">
-                    <button class="btn btn-sm btn-outline-secondary"
-                        onclick="addQty(${item.id},'${item.name}',${item.price},'${img}','${restId}',-1)">−</button>
+                    <p class="text-danger fw-bold">${item.price.toLocaleString()}đ</p>
 
-                    <span class="mx-3" id="qty_${item.id}">${qty}</span>
+                    <div class="d-flex justify-content-center">
+                        <button class="btn btn-sm btn-outline-secondary"
+                            onclick="addQty(${item.id},'${item.name}',${item.price},'${img}','${restId}',-1)">−</button>
 
-                    <button class="btn btn-sm btn-outline-secondary"
-                        onclick="addQty(${item.id},'${item.name}',${item.price},'${img}','${restId}',1)">+</button>
-                </div>
+                        <span class="mx-3" id="qty_${item.id}">${qty}</span>
 
-                <button class="btn btn-danger btn-sm mt-2"
-                    onclick="buyNow(${item.id},'${item.name}',${item.price},'${img}','${restId}')">
-                    Mua ngay
-                </button>
-            </div>`;
-        });
+                        <button class="btn btn-sm btn-outline-secondary"
+                            onclick="addQty(${item.id},'${item.name}',${item.price},'${img}','${restId}',1)">+</button>
+                    </div>
 
-        html += "</div>";
+                    <button class="btn btn-danger btn-sm mt-2 w-100"
+                        onclick="buyNow(${item.id},'${item.name}',${item.price},'${img}','${restId}')">
+                        Mua ngay
+                    </button>
+                </div>`;
+            });
+
+            html += "</div>";
+        }
 
         pageContent.innerHTML = html;
     }
@@ -451,28 +432,45 @@
     ====================================== */
     function addQty(id,name,price,img,restId,delta){
         let cart = getCart();
-        let item = cart.find(c=>c.id==id);
+        let currentRestaurant = cart.length > 0 ? cart[0].restaurantId : null;
 
-        if(!item && delta>0)
-            cart.push(item = {id,name,price,img,qty:0,restaurantId:restId});
+        // Auto clear cart nếu chọn từ nhà hàng khác
+        if(currentRestaurant && currentRestaurant !== restId) {
+            cart = [];
+        }
+
+        let item = cart.find(c => c.id == id);
+
+        if(!item && delta > 0)
+            cart.push(item = {id, name, price, img, qty: 0, restaurantId: restId});
 
         if(item){
             item.qty += delta;
-            if(item.qty <= 0) cart = cart.filter(c=>c.id!==id);
+            if(item.qty <= 0) cart = cart.filter(c => c.id !== id);
         }
 
         saveCart(cart);
 
-        let box = document.getElementById("qty_"+id);
+        let box = document.getElementById("qty_" + id);
         if(box) box.innerHTML = item ? item.qty : 0;
+
+        // Update cart panel if visible
+        if(cartPanel.style.display === 'block') loadCartPanel();
     }
 
     function buyNow(id,name,price,img,restId){
         let cart = getCart();
-        let item = cart.find(c=>c.id==id);
+        let currentRestaurant = cart.length > 0 ? cart[0].restaurantId : null;
+
+        // Auto clear cart nếu chọn từ nhà hàng khác
+        if(currentRestaurant && currentRestaurant !== restId) {
+            cart = [];
+        }
+
+        let item = cart.find(c => c.id == id);
 
         if(!item)
-            cart.push({id,name,price,img,qty:1,restaurantId:restId});
+            cart.push({id, name, price, img, qty: 1, restaurantId: restId});
         else
             item.qty++;
 
@@ -491,7 +489,21 @@
     function switchPage(name){
         dashboardHome.style.display = "none";
         cartPanel.style.display = "none";
+        document.querySelector('.search-container').style.display = "none";
+        document.querySelector('.logo-area').style.display = "none";
+        document.querySelector('.banner').style.display = "none";
         pageContent.innerHTML = "<p class='mt-3'>Đang tải...</p>";
+
+        // Update active nav
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.classList.remove('active-nav');
+        });
+        // Add active class to clicked nav (find by onclick content)
+        document.querySelectorAll('.nav-item').forEach(item => {
+            if(item.getAttribute('onclick').includes(`switchPage('${name}')`)) {
+                item.classList.add('active-nav');
+            }
+        });
 
         fetch(`/customer/page?name=${name}`)
             .then(r=>r.text())
@@ -513,11 +525,26 @@
         pageContent.innerHTML = "";
         dashboardHome.style.display = "block";
         cartPanel.style.display = "none";
+        document.querySelector('.search-container').style.display = "block";
+        document.querySelector('.logo-area').style.display = "block";
+        document.querySelector('.banner').style.display = "block";
+
+        // Update active nav
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.classList.remove('active-nav');
+        });
+        document.querySelector('.nav-item').classList.add('active-nav');
     }
 
     /* INIT */
     loadMenu();
     updateCartCount();
+
+    // Kiểm tra nếu cần auto load trang orders từ success.html
+    if(localStorage.getItem('autoLoadOrders') === 'true') {
+        localStorage.removeItem('autoLoadOrders');
+        switchPage('orders');
+    }
 
 </script>
 

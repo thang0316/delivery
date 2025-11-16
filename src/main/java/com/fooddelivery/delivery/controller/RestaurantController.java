@@ -43,6 +43,14 @@ public class RestaurantController {
         return restaurantService.updateRestaurant(id, request);
     }
 
+    // ===================== CẬP NHẬT TRẠNG THÁI HOẠT ĐỘNG =====================
+    @PutMapping("/{id}/active")
+    public Restaurant updateRestaurantStatus(
+            @PathVariable String id,
+            @RequestParam Boolean active) {
+        return restaurantService.updateRestaurantStatus(id, active);
+    }
+
     // ===================== XÓA =====================
     @DeleteMapping("/{id}")
     public void deleteRestaurant(@PathVariable String id) {

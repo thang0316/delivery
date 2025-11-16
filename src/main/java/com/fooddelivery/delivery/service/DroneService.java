@@ -63,16 +63,27 @@ public class DroneService {
     // Cập nhật drone
     public Drone updateDrone(String id, DroneRequest request) {
         Drone drone = getDroneById(id);
-        drone.setModel(request.getModel());
-        if(request.getStatus() != null) {
-            drone.setStatus(Drone.DroneStatus.valueOf(request.getStatus()));
+        
+        // Cập nhật status
+        if(request.getStatus() != null && !request.getStatus().isEmpty()) {
+            try {
+                drone.setStatus(Drone.DroneStatus.valueOf(request.getStatus()));
+            } catch (IllegalArgumentException e) {
+                // Fallback: mapping enum cũ sang enum mới
+                String newStatus = request.getStatus();
+                if("BUSY".equals(newStatus) || "DELIVERING".equals(newStatus)) {
+                    drone.setStatus(Drone.DroneStatus.CHARGING);
+                } else if("OFFLINE".equals(newStatus)) {
+                    drone.setStatus(Drone.DroneStatus.OFFLINE);
+                } else {
+                    throw new RuntimeException("Invalid status: " + request.getStatus());
+                }
+            }
         }
-        drone.setBatteryLevel(request.getBatteryLevel());
-
-        if (request.getRestaurantId() != null) {
-            Restaurant restaurant = restaurantRepository.findById(request.getRestaurantId())
-                    .orElseThrow(() -> new RuntimeException("Restaurant not found"));
-            drone.setRestaurant(restaurant);
+        
+        // Cập nhật batteryLevel nếu được cung cấp
+        if(request.getBatteryLevel() != null && request.getBatteryLevel() >= 0) {
+            drone.setBatteryLevel(request.getBatteryLevel());
         }
 
         return droneRepository.save(drone);

@@ -56,7 +56,6 @@
     <a href="/restaurant/menu">🍕 Menu</a>
     <a href="/restaurant/orders">📦 Đơn hàng</a>
     <a href="/restaurant/drones">🛩 Drone</a>
-    <a href="/restaurant/payments">💳 Thanh toán</a>
     <a href="/restaurant/profile">👤 Hồ sơ</a>
 </div>
 
@@ -161,8 +160,14 @@
                 const table = document.getElementById("menuTable");
                 table.innerHTML = "";
 
-                list.filter(m => m.restaurant?.id === restaurantId)
-                    .forEach(m => {
+                const myMenuItems = list.filter(m => m.restaurant?.id === restaurantId);
+                
+                if(myMenuItems.length === 0) {
+                    table.innerHTML = `<tr><td colspan="7" class="text-center text-muted">Chưa có món nào</td></tr>`;
+                    return;
+                }
+
+                myMenuItems.forEach(m => {
 
                         const imgTag = m.imageUrl
                             ? `<img src="/images/${m.imageUrl}" class="menu-thumb" onerror="this.style.display='none';">`
@@ -181,6 +186,11 @@
                             </td>
                         </tr>`;
                     });
+            })
+            .catch(err => {
+                console.error("Lỗi tải menu:", err);
+                const table = document.getElementById("menuTable");
+                table.innerHTML = `<tr><td colspan="7" class="text-center text-danger">Lỗi tải menu</td></tr>`;
             });
     }
 

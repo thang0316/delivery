@@ -16,10 +16,10 @@ public class Restaurant {
     @Column(length = 100, nullable = false)
     private String name;
 
-    @Column(length = 255)
+    @Column(length = 255, nullable = false)
     private String address;
 
-    @Column(length = 20)
+    @Column(length = 20, nullable = false)
     private String phone;
 
     @OneToOne

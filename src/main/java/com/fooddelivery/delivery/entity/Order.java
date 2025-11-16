@@ -15,11 +15,17 @@ public class Order {
     private Long id;
 
     // Người đặt hàng
+    @Column(nullable = false)
     private String customerName;
+    
+    @Column(nullable = false)
     private String customerPhone;
+    
+    @Column(nullable = false)
     private String customerAddress;
 
     // Tổng tiền
+    @Column(nullable = false)
     private Double totalAmount;
 
     // Trạng thái đơn hàng
@@ -51,37 +57,10 @@ public class Order {
     
     /**
      * Kiểm tra xem có thể chuyển sang trạng thái mới không
-     * Luồng: PENDING → CONFIRMED → DELIVERING → COMPLETED
-     * Cho phép hủy (CANCELED) khi: PENDING hoặc DELIVERING
+     * Admin có thể chuyển tự do
      */
     public boolean canTransitionTo(OrderStatus newStatus) {
-        // Không thể chuyển sang chính nó
-        if (this.status == newStatus) {
-            return false;
-        }
-        
-        // Đã hoàn thành hoặc đã hủy thì không thể chuyển nữa
-        if (this.status == OrderStatus.COMPLETED || this.status == OrderStatus.CANCELED) {
-            return false;
-        }
-        
-        // Kiểm tra luồng chuyển trạng thái hợp lệ
-        switch (this.status) {
-            case PENDING:
-                // PENDING có thể → CONFIRMED hoặc CANCELED (khách hủy trước khi xác nhận)
-                return newStatus == OrderStatus.CONFIRMED || newStatus == OrderStatus.CANCELED;
-                
-            case CONFIRMED:
-                // CONFIRMED chỉ có thể → DELIVERING (không cho hủy sau khi xác nhận)
-                return newStatus == OrderStatus.DELIVERING;
-                
-            case DELIVERING:
-                // DELIVERING có thể → COMPLETED hoặc CANCELED
-                return newStatus == OrderStatus.COMPLETED || newStatus == OrderStatus.CANCELED;
-                
-            default:
-                return false;
-        }
+        return true;
     }
     
     public boolean isCancelable() {

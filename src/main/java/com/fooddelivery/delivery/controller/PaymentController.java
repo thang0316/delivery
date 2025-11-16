@@ -44,6 +44,11 @@ public class PaymentController {
     public void deletePayment(@PathVariable String id) {
         paymentService.deletePayment(id);
     }
+
+    @GetMapping("/order/{orderId}")
+    public List<Payment> getPaymentsByOrder(@PathVariable Long orderId) {
+        return paymentService.getPaymentsByOrder(orderId);
+    }
     
     // ==================== VNPAY ENDPOINTS ====================
     

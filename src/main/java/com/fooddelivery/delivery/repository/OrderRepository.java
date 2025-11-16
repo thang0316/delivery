@@ -15,5 +15,4 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Order> findByCustomer_IdOrderByCreatedAtDesc(String customerId);
     List<Order> findByRestaurant_IdOrderByCreatedAtDesc(String restaurantId);
     long countByRestaurant_Id(String restaurantId);
-
 }

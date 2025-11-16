@@ -21,17 +21,28 @@
     <a href="/restaurant/menu">🍕 Menu</a>
     <a href="/restaurant/orders">📦 Đơn hàng</a>
     <a href="/restaurant/drones">🛩 Drone</a>
-    <a href="/restaurant/payments">💳 Thanh toán</a>
     <a href="/restaurant/profile">👤 Hồ sơ</a>
 </div>
 
 <div class="content">
-    <h3>👤 Hồ sơ Nhà hàng</h3>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <h3>👤 Hồ sơ Nhà hàng</h3>
+        <button class="btn btn-danger" onclick="logout()">Đăng xuất</button>
+    </div>
 
     <div class="card-box mt-3">
         <p><b>Tên:</b> <span id="rName"></span></p>
         <p><b>Địa chỉ:</b> <span id="rAddr"></span></p>
         <p><b>SĐT:</b> <span id="rPhone"></span></p>
+        <p>
+            <b>Trạng thái:</b>
+            <div class="form-check form-switch" style="margin-top: 8px;">
+                <input class="form-check-input" type="checkbox" id="statusToggle" onchange="toggleStatus()">
+                <label class="form-check-label" for="statusToggle">
+                    <span id="statusLabel">Đóng cửa</span>
+                </label>
+            </div>
+        </p>
     </div>
 </div>
 
@@ -44,7 +55,32 @@
             rName.innerText=res.name;
             rAddr.innerText=res.address;
             rPhone.innerText=res.phone;
+            
+            // Set toggle status
+            document.getElementById("statusToggle").checked = res.active;
+            document.getElementById("statusLabel").innerText = res.active ? "Mở cửa" : "Đóng cửa";
         });
+
+    function toggleStatus(){
+        const isActive = document.getElementById("statusToggle").checked;
+        const label = isActive ? "Mở cửa" : "Đóng cửa";
+        
+        fetch(`/api/restaurants/${id}/active?active=${isActive}`, {method: "PUT"})
+            .then(r => r.json())
+            .then(() => {
+                document.getElementById("statusLabel").innerText = label;
+                alert(`Trạng thái: ${label}`);
+            })
+            .catch(err => {
+                alert("Lỗi cập nhật trạng thái!");
+                console.error(err);
+            });
+    }
+
+    function logout(){
+        localStorage.clear();
+        window.location.href="/login";
+    }
 </script>
 
 </body>

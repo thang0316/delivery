@@ -11,4 +11,6 @@ import com.fooddelivery.delivery.entity.Review;
 public interface ReviewRepository extends JpaRepository<Review, String> {
 	List<Review> findByUserId(String userId);
     List<Review> findByOrderRestaurantId(String restaurantId);
+    boolean existsByOrderId(Long orderId);
+    java.util.Optional<Review> findByOrderId(Long orderId);
 }

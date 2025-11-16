@@ -34,7 +34,6 @@
     <a href="/restaurant/menu">🍕 Menu</a>
     <a href="/restaurant/orders">📦 Đơn hàng</a>
     <a href="/restaurant/drones">🛩 Drone</a>
-    <a href="/restaurant/payments">💳 Thanh toán</a>
     <a href="/restaurant/profile">👤 Hồ sơ</a>
 </div>
 
@@ -63,14 +62,31 @@
     const restaurantId = localStorage.getItem("restaurantId");
 
     /* ================================
-           1) Tổng đơn hàng
+           1) Tổng đơn hàng (chỉ tính đã thanh toán)
     ================================= */
-    fetch(`/api/orders`)
-        .then(r => r.json())
-        .then(list => {
-            const myOrders = list.filter(o => o.restaurant.id === restaurantId);
-            orderCount.innerText = myOrders.length;
-        });
+    async function loadOrderStats() {
+        const orderRes = await fetch(`/api/orders`);
+        const list = await orderRes.json();
+        const myOrders = list.filter(o => o.restaurant.id === restaurantId);
+        
+        let paidOrders = [];
+        let totalRevenue = 0;
+        
+        for(let order of myOrders) {
+            const paymentRes = await fetch(`/api/payments/order/${order.id}`);
+            const payments = await paymentRes.json();
+            const completedPayment = payments.find(p => p.status === 'COMPLETED');
+            
+            if(completedPayment && order.status === 'COMPLETED') {
+                paidOrders.push(order);
+                totalRevenue += order.totalAmount;
+            }
+        }
+        
+        orderCount.innerText = paidOrders.length;
+        revenue.innerText = totalRevenue.toLocaleString("vi-VN") + " ₫";
+    }
+    loadOrderStats();
 
     /* ================================
            2) Drone hoạt động
@@ -79,19 +95,6 @@
         .then(r => r.json())
         .then(list => {
             droneActive.innerText = list.filter(x => x.status === "AVAILABLE").length;
-        });
-
-    /* ================================
-           3) Doanh thu = Tổng totalAmount
-    ================================= */
-    fetch(`/api/orders`)
-        .then(r => r.json())
-        .then(list => {
-            const myOrders = list.filter(o => o.restaurant.id === restaurantId);
-
-            let totalRevenue = myOrders.reduce((sum, o) => sum + o.totalAmount, 0);
-
-            revenue.innerText = totalRevenue.toLocaleString("vi-VN") + " ₫";
         });
 </script>
 

@@ -79,4 +79,13 @@ public class RestaurantService {
     public void deleteRestaurant(String id) {
         restaurantRepository.deleteById(id);
     }
+
+    // Cập nhật trạng thái hoạt động
+    public Restaurant updateRestaurantStatus(String id, Boolean active) {
+        Restaurant restaurant = restaurantRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Không tìm thấy nhà hàng với ID " + id));
+        
+        restaurant.setActive(active);
+        return restaurantRepository.save(restaurant);
+    }
 }

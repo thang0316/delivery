@@ -46,6 +46,18 @@ public class ReviewController {
         return reviewService.getReviewsByRestaurant(restaurantId);
     }
 
+    // Kiểm tra order đã có review chưa
+    @GetMapping("/check-order/{orderId}")
+    public boolean hasReview(@PathVariable Long orderId) {
+        return reviewService.hasReview(orderId);
+    }
+
+    // Lấy review của 1 order
+    @GetMapping("/order/{orderId}")
+    public Review getReviewByOrder(@PathVariable Long orderId) {
+        return reviewService.getReviewByOrder(orderId);
+    }
+
     // Cập nhật review
     @PutMapping("/{id}")
     public Review updateReview(@PathVariable String id, @RequestBody ReviewRequest request) {

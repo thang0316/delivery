@@ -8,17 +8,8 @@
             <input id="model" class="form-control" placeholder="Model">
         </div>
 
-        <div class="col-md-2">
+        <div class="col-md-3">
             <input id="battery" type="number" class="form-control" placeholder="Pin (%)">
-        </div>
-
-        <div class="col-md-2">
-            <select id="status" class="form-select">
-                <option value="AVAILABLE">AVAILABLE</option>
-                <option value="BUSY">BUSY</option>
-                <option value="OFFLINE">OFFLINE</option>
-            </select>
-
         </div>
 
         <div class="col-md-3">
@@ -51,6 +42,7 @@
 
 <script>
     const API = window.apiBase || "http://localhost:8080/api";
+    console.log("API Base:", API);
 
     // ========== LOAD RESTAURANTS ==========
     async function loadRestaurants() {
@@ -58,14 +50,23 @@
 
         try {
             const res = await fetch(API + "/restaurants");
+            if(!res.ok) throw new Error("API error: " + res.status);
+            
             const data = await res.json();
+            console.log("Nhà hàng tải được:", data);
 
-            sel.innerHTML = data.map(r =>
-                `<option value="${r.id}">${r.name}</option>`
+            if(!data || data.length === 0) {
+                sel.innerHTML = `<option disabled selected>Không có nhà hàng</option>`;
+                return;
+            }
+
+            sel.innerHTML = data.map((r, idx) =>
+                `<option value="${r.id}" ${idx === 0 ? 'selected' : ''}>${r.name}</option>`
             ).join("");
 
         } catch (e) {
-            sel.innerHTML = `<option disabled>Lỗi tải nhà hàng</option>`;
+            console.error("Lỗi tải nhà hàng:", e);
+            sel.innerHTML = `<option disabled selected>Lỗi tải nhà hàng: ${e.message}</option>`;
         }
     }
 
@@ -105,7 +106,6 @@
         const data = {
             model: document.getElementById("model").value,
             batteryLevel: Number(document.getElementById("battery").value),
-            status: document.getElementById("status").value,
             restaurantId: document.getElementById("restaurantSelect").value
         };
 

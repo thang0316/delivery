@@ -48,7 +48,6 @@
     <a href="/restaurant/menu">🍕 Menu</a>
     <a href="/restaurant/orders">📦 Đơn hàng</a>
     <a href="/restaurant/drones">🛩 Drone</a>
-    <a href="/restaurant/payments">💳 Thanh toán</a>
     <a href="/restaurant/profile">👤 Hồ sơ</a>
 </div>
 
@@ -66,12 +65,11 @@
                 <th>Model</th>
                 <th>Trạng thái</th>
                 <th>Pin</th>
-                <th>Nhà hàng</th>
                 <th></th>
             </tr>
             </thead>
             <tbody id="droneTable">
-            <tr><td colspan="6" class="text-center text-muted">Đang tải...</td></tr>
+            <tr><td colspan="5" class="text-center text-muted">Đang tải...</td></tr>
             </tbody>
         </table>
     </div>
@@ -86,17 +84,30 @@
             <label>Model:</label>
             <input id="model" class="form-control mb-2" placeholder="VD: DJI-X3">
 
-            <label>Trạng thái:</label>
-            <select id="status" class="form-control mb-2">
-                <option value="AVAILABLE">AVAILABLE</option>
-                <option value="BUSY">BUSY</option>
-                <option value="OFFLINE">OFFLINE</option>
-            </select>
-
             <label>% Pin:</label>
             <input id="battery" type="number" class="form-control mb-2" value="100" min="1" max="100">
 
             <button class="btn btn-success w-100" onclick="addDrone()">Thêm Drone</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Chọn Trạng thái -->
+<div class="modal fade" id="statusModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content p-3">
+            <h5 class="mb-3">🛩 Chọn Trạng thái Drone</h5>
+
+            <label>Trạng thái mới:</label>
+            <select id="statusSelect" class="form-control mb-2">
+                <option value="AVAILABLE">AVAILABLE - Sẵn sàng</option>
+                <option value="DELIVERING">DELIVERING - Đang giao</option>
+                <option value="CHARGING">CHARGING - Đang sạc</option>
+                <option value="OFFLINE">OFFLINE - Ngoại tuyến</option>
+            </select>
+
+            <button class="btn btn-success w-100 mb-2" onclick="submitStatusChange()">Cập nhật</button>
+            <button class="btn btn-secondary w-100" onclick="closeStatusModal()">Đóng</button>
         </div>
     </div>
 </div>
@@ -121,14 +132,26 @@
                 list.forEach(d => {
 
                     const batteryClass = d.batteryLevel <= 20 ? "battery-low" : "battery-ok";
+                    
+                    let statusBtn = "";
+                    if(d.status === "AVAILABLE") {
+                        statusBtn = `<button class="btn btn-success btn-sm me-1" onclick="updateDroneStatus('${d.id}', '${d.status}')">AVAILABLE</button>`;
+                    } else if(d.status === "DELIVERING") {
+                        statusBtn = `<button class="btn btn-info btn-sm me-1" onclick="updateDroneStatus('${d.id}', '${d.status}')">DELIVERING</button>`;
+                    } else if(d.status === "CHARGING") {
+                        statusBtn = `<button class="btn btn-warning btn-sm me-1" onclick="updateDroneStatus('${d.id}', '${d.status}')">CHARGING</button>`;
+                    } else if(d.status === "OFFLINE") {
+                        statusBtn = `<button class="btn btn-danger btn-sm me-1" onclick="updateDroneStatus('${d.id}', '${d.status}')">OFFLINE</button>`;
+                    } else {
+                        statusBtn = `<span class="text-muted">${d.status}</span>`;
+                    }
 
                     table.innerHTML += `
                     <tr>
                         <td>${d.id}</td>
                         <td>${d.model}</td>
-                        <td>${d.status}</td>
+                        <td>${statusBtn}</td>
                         <td class="${batteryClass}">${d.batteryLevel}%</td>
-                        <td>${d.restaurant?.name || ""}</td>
                         <td>
                             <button class="btn btn-danger btn-sm" onclick="deleteDrone('${d.id}')">Xóa</button>
                         </td>
@@ -151,7 +174,6 @@
 
         const body = {
             model: document.getElementById("model").value,
-            status: document.getElementById("status").value,
             batteryLevel: Number(document.getElementById("battery").value),
             restaurantId: restaurantId
         };
@@ -182,6 +204,43 @@
                 alert("Đã xóa drone!");
                 loadDrones();
             });
+    }
+
+    let currentDroneId = null;
+
+    /* ===========================
+           UPDATE DRONE STATUS
+    =========================== */
+    function updateDroneStatus(droneId, newStatus) {
+        currentDroneId = droneId;
+        document.getElementById("statusSelect").value = newStatus;
+        new bootstrap.Modal(document.getElementById("statusModal")).show();
+    }
+
+    function submitStatusChange() {
+        const newStatus = document.getElementById("statusSelect").value;
+        
+        fetch(`/api/drones/${currentDroneId}`, {
+            method: "PUT",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({status: newStatus})
+        })
+        .then(r => {
+            if(r.ok) {
+                closeStatusModal();
+                loadDrones();
+            } else {
+                return r.text().then(text => {
+                    alert("Lỗi: " + text);
+                });
+            }
+        })
+        .catch(e => alert("Lỗi: " + e.message));
+    }
+
+    function closeStatusModal() {
+        bootstrap.Modal.getInstance(document.getElementById("statusModal")).hide();
+        currentDroneId = null;
     }
 
     /* INIT */

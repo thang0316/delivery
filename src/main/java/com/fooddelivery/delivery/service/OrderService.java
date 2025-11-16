@@ -18,7 +18,7 @@ import com.fooddelivery.delivery.repository.*;
 @Service
 public class OrderService {
 
-	@Autowired
+    @Autowired
     private OrderRepository orderRepository;
 
     @Autowired
@@ -33,7 +33,8 @@ public class OrderService {
     @Autowired
     private PaymentRepository paymentRepository;
 
- //  Tạo đơn hàng
+    @Autowired
+    private com.fooddelivery.delivery.repository.ReviewRepository reviewRepository; //  Tạo đơn hàng
     	public Order createOrder(OrderRequest request) {
         User customer = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng!"));
@@ -100,65 +101,11 @@ public class OrderService {
     }
 
     /**
-     * Cập nhật trạng thái đơn hàng với validation
-     * Luồng: PENDING → CONFIRMED → DELIVERING → COMPLETED
-     * Cho phép hủy (CANCELED) khi: PENDING hoặc DELIVERING
-     * PENDING → CONFIRMED yêu cầu Payment đã COMPLETED
+     * Cập nhật trạng thái đơn hàng
      */
     public Order updateStatus(Long orderId, OrderStatus newStatus) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng cần cập nhật!"));
-        
-        OrderStatus currentStatus = order.getStatus();
-        
-        // ✅ Kiểm tra đặc biệt: PENDING → CONFIRMED cần Payment COMPLETED
-        if (currentStatus == OrderStatus.PENDING && newStatus == OrderStatus.CONFIRMED) {
-            boolean hasCompletedPayment = paymentRepository.existsByOrderIdAndStatus(
-                orderId, 
-                com.fooddelivery.delivery.entity.Payment.PaymentStatus.COMPLETED
-            );
-            
-            if (!hasCompletedPayment) {
-                throw new RuntimeException(
-                    "Không thể xác nhận đơn hàng! Khách hàng chưa thanh toán (Payment status phải là COMPLETED)."
-                );
-            }
-        }
-        
-        // Kiểm tra xem có thể chuyển sang trạng thái mới không
-        if (!order.canTransitionTo(newStatus)) {
-            String errorMessage;
-            
-            // Tạo message lỗi chi tiết theo từng trường hợp
-            if (newStatus == OrderStatus.CANCELED) {
-                if (currentStatus == OrderStatus.CONFIRMED) {
-                    errorMessage = "Không thể hủy đơn hàng đã xác nhận! Nhà hàng đang chuẩn bị món ăn.";
-                } else if (currentStatus == OrderStatus.COMPLETED) {
-                    errorMessage = "Không thể hủy đơn hàng đã hoàn thành!";
-                } else if (currentStatus == OrderStatus.CANCELED) {
-                    errorMessage = "Đơn hàng đã bị hủy rồi!";
-                } else {
-                    errorMessage = "Không thể hủy đơn hàng ở trạng thái: " + currentStatus;
-                }
-            } else if (currentStatus == OrderStatus.COMPLETED) {
-                errorMessage = "Đơn hàng đã hoàn thành, không thể chuyển sang trạng thái khác!";
-            } else if (currentStatus == OrderStatus.CANCELED) {
-                errorMessage = "Đơn hàng đã bị hủy, không thể chuyển sang trạng thái khác!";
-            } else if (currentStatus == OrderStatus.PENDING && newStatus == OrderStatus.DELIVERING) {
-                errorMessage = "Không thể chuyển từ PENDING sang DELIVERING! Phải xác nhận đơn (CONFIRMED) trước.";
-            } else if (currentStatus == OrderStatus.PENDING && newStatus == OrderStatus.COMPLETED) {
-                errorMessage = "Không thể hoàn thành đơn hàng chưa xác nhận! Luồng: PENDING → CONFIRMED → DELIVERING → COMPLETED.";
-            } else if (currentStatus == OrderStatus.CONFIRMED && newStatus == OrderStatus.COMPLETED) {
-                errorMessage = "Không thể hoàn thành đơn hàng chưa giao! Phải chuyển sang DELIVERING trước.";
-            } else {
-                errorMessage = String.format(
-                    "Không thể chuyển trạng thái từ '%s' sang '%s'.",
-                    currentStatus, newStatus
-                );
-            }
-            
-            throw new RuntimeException(errorMessage);
-        }
         
         order.setStatus(newStatus);
         return orderRepository.save(order);
@@ -166,9 +113,26 @@ public class OrderService {
 
     //  Xóa đơn
     public void deleteOrder(Long orderId) {
-        if (!orderRepository.existsById(orderId)) {
-            throw new RuntimeException("Không thể xóa — đơn hàng không tồn tại!");
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Không thể xóa — đơn hàng không tồn tại!"));
+        
+        // Xóa tất cả Review trước (vì có FK tới Order)
+        reviewRepository.findByOrderId(orderId).ifPresent(review -> {
+            reviewRepository.delete(review);
+        });
+        
+        // Xóa tất cả Payment (vì có FK tới Order)
+        paymentRepository.findByOrderId(orderId).forEach(payment -> {
+            paymentRepository.delete(payment);
+        });
+        
+        // Xóa tất cả OrderItems
+        if (order.getItems() != null && !order.getItems().isEmpty()) {
+            order.getItems().clear();
+            orderRepository.save(order);
         }
-        orderRepository.deleteById(orderId);
+        
+        // Xóa Order
+        orderRepository.delete(order);
     }
 }

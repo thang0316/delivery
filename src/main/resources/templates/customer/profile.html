@@ -2,6 +2,36 @@
 
 <div id="profileBox">Đang tải...</div>
 
+<!-- Modal đổi mật khẩu -->
+<div id="changePasswordModal" class="modal fade" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Đổi mật khẩu</h5>
+                <button type="button" class="btn-close" onclick="closeChangePasswordModal()"></button>
+            </div>
+            <div class="modal-body">
+                <form id="changePasswordForm">
+                    <div class="mb-3">
+                        <label class="form-label">Mật khẩu hiện tại <span class="text-danger">*</span></label>
+                        <input type="password" id="oldPassword" class="form-control" placeholder="Nhập mật khẩu hiện tại" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Mật khẩu mới <span class="text-danger">*</span></label>
+                        <input type="password" id="newPassword" class="form-control" placeholder="Nhập mật khẩu mới" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Xác nhận mật khẩu mới <span class="text-danger">*</span></label>
+                        <input type="password" id="confirmPassword" class="form-control" placeholder="Xác nhận mật khẩu mới" required>
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="submitChangePassword()">Đổi mật khẩu</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeChangePasswordModal()">Hủy</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     /* ============================
           LOAD USER FORMAT CŨ
@@ -29,9 +59,14 @@
         <p><b>Email:</b> ${u.email || "—"}</p>
         <p><b>Số điện thoại:</b> ${u.phone || "—"}</p>
 
-        <button class="btn btn-danger mt-3" onclick="logout()">
-            Đăng xuất
-        </button>
+        <div class="mt-3">
+            <button class="btn btn-warning me-2" onclick="openChangePasswordModal()">
+                Đổi mật khẩu
+            </button>
+            <button class="btn btn-danger" onclick="logout()">
+                Đăng xuất
+            </button>
+        </div>
     `;
     }
 
@@ -42,6 +77,95 @@
         localStorage.removeItem("user");
         localStorage.removeItem("cart");
         window.location.href = "/login";
+    }
+
+    /* ============================
+          ĐỔI MẬT KHẨU - MỞ MODAL
+    =============================== */
+    function openChangePasswordModal(){
+        document.getElementById('changePasswordModal').style.display = 'block';
+        document.getElementById('changePasswordModal').classList.add('show');
+        document.body.classList.add('modal-open');
+        
+        // Tạo backdrop
+        let backdrop = document.querySelector('.modal-backdrop');
+        if(!backdrop){
+            backdrop = document.createElement('div');
+            backdrop.className = 'modal-backdrop fade show';
+            document.body.appendChild(backdrop);
+        }
+    }
+
+    /* ============================
+        ĐỔI MẬT KHẨU - ĐÓNG MODAL
+    =============================== */
+    function closeChangePasswordModal(){
+        document.getElementById('changePasswordModal').style.display = 'none';
+        document.getElementById('changePasswordModal').classList.remove('show');
+        document.body.classList.remove('modal-open');
+        
+        // Xóa backdrop
+        let backdrop = document.querySelector('.modal-backdrop');
+        if(backdrop) backdrop.remove();
+        
+        // Reset form
+        document.getElementById('changePasswordForm').reset();
+    }
+
+    /* ============================
+      ĐỔI MẬT KHẨU - GỬI YÊU CẦU
+    =============================== */
+    async function submitChangePassword(){
+        let oldPassword = document.getElementById('oldPassword').value;
+        let newPassword = document.getElementById('newPassword').value;
+        let confirmPassword = document.getElementById('confirmPassword').value;
+        
+        // Validate
+        if(!oldPassword){
+            alert("Vui lòng nhập mật khẩu hiện tại!");
+            return;
+        }
+        
+        if(!newPassword){
+            alert("Vui lòng nhập mật khẩu mới!");
+            return;
+        }
+        
+        if(newPassword !== confirmPassword){
+            alert("Mật khẩu mới và xác nhận không khớp!");
+            return;
+        }
+        
+        if(newPassword.length < 6){
+            alert("Mật khẩu mới phải có ít nhất 6 ký tự!");
+            return;
+        }
+        
+        let user = getUser();
+        let payload = {
+            userId: user.id,
+            oldPassword: oldPassword,
+            newPassword: newPassword
+        };
+        
+        try {
+            const res = await fetch("/api/users/change-password", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(payload)
+            });
+            
+            if(!res.ok){
+                const error = await res.text();
+                alert("Lỗi: " + error);
+                return;
+            }
+            
+            alert("Đổi mật khẩu thành công!");
+            closeChangePasswordModal();
+        } catch(e){
+            alert("Lỗi: " + e.message);
+        }
     }
 
     loadProfile();

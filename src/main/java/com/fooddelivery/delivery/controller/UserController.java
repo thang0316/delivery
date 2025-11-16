@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.fooddelivery.delivery.dto.request.UserRequest;
 import com.fooddelivery.delivery.dto.request.UserUpdateRequest;
+import com.fooddelivery.delivery.dto.request.ChangePasswordRequest;
 import com.fooddelivery.delivery.entity.User;
 import com.fooddelivery.delivery.service.UserService;
 
@@ -47,5 +48,10 @@ public class UserController {
 	String deleteUser(@PathVariable String userId) {
 		userService.deleteUser(userId);
 		return "User has been deleted";
+	}
+	
+	@PostMapping("/change-password")
+	String changePassword(@RequestBody ChangePasswordRequest request) {
+		return userService.changePassword(request.getUserId(), request.getOldPassword(), request.getNewPassword());
 	}
 }

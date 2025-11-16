@@ -2,15 +2,57 @@
 
 <div id="ordersBox">Đang tải...</div>
 
+<!-- Modal chi tiết đơn hàng -->
+<div id="orderDetailModal" class="modal fade" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Chi tiết đơn hàng #<span id="orderDetailId"></span></h5>
+                <button type="button" class="btn-close" onclick="closeModal()"></button>
+            </div>
+            <div class="modal-body">
+                <div id="detailContent">Đang tải...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal feedback/đánh giá -->
+<div id="feedbackModal" class="modal fade" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Đánh giá đơn hàng</h5>
+                <button type="button" class="btn-close" onclick="closeFeedbackModal()"></button>
+            </div>
+            <div class="modal-body">
+                <div id="feedbackContent">Đang tải...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     /* ===============================
-           LOAD USER FORMAT CŨ
+                LOAD USER FORMAT CŨ
     =============================== */
     function getUser(){
         return JSON.parse(localStorage.getItem("user") || "{}");
     }
 
     /* ===============================
+         DỊCH TRẠNG THÁI SANG TIẾNG VIỆT
+    =============================== */
+    function translateStatus(status) {
+        const statusMap = {
+            'PENDING': 'Chờ xác nhận',
+            'CONFIRMED': 'Đã xác nhận',
+            'DELIVERING': 'Đang giao',
+            'COMPLETED': 'Hoàn thành',
+            'CANCELED': 'Đã hủy'
+        };
+        return statusMap[status] || status;
+    }    /* ===============================
                 LOAD ORDERS
     =============================== */
     async function loadOrders(){
@@ -37,13 +79,14 @@
             html += `
         <div class="border rounded p-3 mb-3">
             <h5>Đơn #${o.id}</h5>
-            <p>📌 Trạng thái:
-                <b class="text-primary">${o.status}</b>
+            <p>Trạng thái:
+                <b class="text-primary">${translateStatus(o.status)}</b>
             </p>
-            <p>💰 Tổng tiền:
+            <p>Tổng tiền:
                 <b class="text-danger">${o.totalAmount.toLocaleString()}đ</b>
             </p>
-            <p>🕒 Ngày tạo: ${date}</p>
+            <p>Ngày tạo: ${date}</p>
+            <button class="btn btn-info btn-sm" onclick="viewOrderDetail(${o.id})">Chi tiết</button>
         </div>`;
         });
 
@@ -51,4 +94,295 @@
     }
 
     loadOrders();
+
+    /* ===============================
+         XEM CHI TIẾT ĐƠN HÀNG
+    =============================== */
+    async function viewOrderDetail(orderId){
+        try {
+            const r = await fetch(`/api/orders/${orderId}`);
+            const order = await r.json();
+            
+            // Lấy thông tin payment
+            const paymentR = await fetch(`/api/payments/order/${orderId}`);
+            const payments = await paymentR.json();
+            const completedPayment = payments.find(p => p.status === 'COMPLETED');
+            const pendingPayment = payments.find(p => p.status === 'PENDING');
+            
+            // Dịch trạng thái thanh toán
+            let paymentStatusVi = completedPayment ? " Đã thanh toán" : "⏳ Chưa thanh toán";
+            let paymentStatusClass = completedPayment ? "bg-success" : "bg-warning";
+            
+            document.getElementById('orderDetailId').textContent = orderId;
+            
+            let itemsHtml = "";
+            if(order.items && order.items.length > 0){
+                order.items.forEach(item => {
+                    itemsHtml += `
+                    <tr>
+                        <td>${item.menuItem?.name || "Không rõ"}</td>
+                        <td>${item.quantity}</td>
+                        <td>${item.price.toLocaleString()}đ</td>
+                        <td>${(item.quantity * item.price).toLocaleString()}đ</td>
+                    </tr>`;
+                });
+            } else {
+                itemsHtml = "<tr><td colspan='4' class='text-center text-muted'>Không có món ăn</td></tr>";
+            }
+            
+            // Action buttons
+            let actionBtnHtml = "";
+            if(!completedPayment){
+                // Chưa thanh toán: hiển thị nút Thanh toán
+                actionBtnHtml = `
+                    <div class="mt-3">
+                        <button class="btn btn-success" onclick="payOrder(${orderId})">Thanh toán</button>
+                    </div>`;
+            } else {
+                // Đã thanh toán: hiển thị bảng lịch sử thanh toán thành công + nút đánh giá
+                let completedDate = new Date(completedPayment.completedAt).toLocaleString("vi-VN");
+                
+                let paymentHistoryHtml = `
+                    <table class="table table-sm table-bordered mt-3">
+                        <thead>
+                            <tr>
+                                <th>Thời gian tạo</th>
+                                <th>Số tiền</th>
+                                <th>Phương thức</th>
+                                <th>Mã giao dịch</th>
+                                <th>Ngân hàng</th>
+                                <th>Thời gian hoàn thành</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>${new Date(completedPayment.createdAt).toLocaleString("vi-VN")}</td>
+                                <td>${completedPayment.amount.toLocaleString()}đ</td>
+                                <td>${completedPayment.method}</td>
+                                <td>${completedPayment.transactionId || "N/A"}</td>
+                                <td>${completedPayment.bankCode || "N/A"}</td>
+                                <td>${completedDate}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="d-flex gap-2 mt-2">
+                        ${order.status === 'COMPLETED' ? `<button id="reviewBtn_${orderId}" class="btn btn-warning btn-sm" onclick="openFeedbackForm(${orderId})">Đánh giá</button>` : `<p class="text-muted">Chỉ có thể đánh giá khi đơn hàng hoàn thành</p>`}
+                    </div>
+                `;
+                
+                actionBtnHtml = `
+                    <div class="mt-3">
+                        <p><strong>Lịch sử thanh toán:</strong></p>
+                        ${paymentHistoryHtml}
+                    </div>`;
+            }
+            
+            let detailHtml = `
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <p><strong>Tên khách:</strong> ${order.customerName}</p>
+                        <p><strong>Điện thoại:</strong> ${order.customerPhone}</p>
+                        <p><strong>Địa chỉ:</strong> ${order.customerAddress}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Nhà hàng:</strong> ${order.restaurant?.name || "Không rõ"}</p>
+                        <p><strong>Trạng thái đơn:</strong> <span class="badge bg-primary">${translateStatus(order.status)}</span></p>
+                        <p><strong>Thanh toán:</strong> <span class="badge ${paymentStatusClass}">${paymentStatusVi}</span></p>
+                        <p><strong>Ngày tạo:</strong> ${new Date(order.createdAt).toLocaleString("vi-VN")}</p>
+                    </div>
+                </div>
+                
+                <h6>Danh sách món ăn:</h6>
+                <table class="table table-sm table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Tên món</th>
+                            <th>Số lượng</th>
+                            <th>Giá</th>
+                            <th>Thành tiền</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${itemsHtml}
+                    </tbody>
+                </table>
+                
+                <div class="text-end mb-3">
+                    <p><strong>Tổng cộng:</strong> <span class="text-danger" style="font-size: 18px;">${order.totalAmount.toLocaleString()}đ</span></p>
+                </div>
+                
+                ${actionBtnHtml}
+            `;
+            
+            document.getElementById('detailContent').innerHTML = detailHtml;
+            // Mở modal bằng cách trigger click
+            document.getElementById('orderDetailModal').style.display = 'block';
+            document.getElementById('orderDetailModal').classList.add('show');
+            document.body.classList.add('modal-open');
+            
+            // Tạo backdrop
+            let backdrop = document.querySelector('.modal-backdrop');
+            if(!backdrop){
+                backdrop = document.createElement('div');
+                backdrop.className = 'modal-backdrop fade show';
+                document.body.appendChild(backdrop);
+            }
+            
+            // Kiểm tra xem đơn hàng đã được đánh giá chưa
+            checkOrderReviewed(orderId);
+        } catch(e){
+            alert("Lỗi: " + e.message);
+        }
+    }
+
+    // Thanh toán đơn hàng
+    async function payOrder(orderId){
+        try {
+            const r = await fetch(`/api/payments/vnpay/create?orderId=${orderId}`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'}
+            });
+            
+            if(!r.ok){
+                alert("Không thể kết nối VNPay!");
+                return;
+            }
+            
+            const vnpayUrl = await r.text();
+            
+            if(vnpayUrl && vnpayUrl.startsWith("http")){
+                window.location.href = vnpayUrl;
+            } else {
+                alert("Lỗi: Không thể tạo link thanh toán!");
+            }
+        } catch(e){
+            alert("Lỗi: " + e.message);
+        }
+    }
+
+    // Đóng modal
+    function closeModal(){
+        document.getElementById('orderDetailModal').style.display = 'none';
+        document.getElementById('orderDetailModal').classList.remove('show');
+        document.body.classList.remove('modal-open');
+        let backdrop = document.querySelector('.modal-backdrop');
+        if(backdrop) backdrop.remove();
+    }   
+
+    // Kiểm tra xem đơn hàng đã được đánh giá chưa
+    async function checkOrderReviewed(orderId){
+        try {
+            const res = await fetch(`/api/reviews/order/${orderId}`);
+            const review = await res.json();
+            
+            let reviewBtn = document.getElementById(`reviewBtn_${orderId}`);
+            if(reviewBtn){
+                if(review && review.id){
+                    // Đã review rồi
+                    reviewBtn.disabled = true;
+                    reviewBtn.innerHTML = "✓ Đã đánh giá";
+                    reviewBtn.classList.remove('btn-warning');
+                    reviewBtn.classList.add('btn-success');
+                } else {
+                    // Chưa review
+                    reviewBtn.disabled = false;
+                    reviewBtn.innerHTML = "Đánh giá";
+                }
+            }
+        } catch(e){
+            console.log("Không thể kiểm tra review:", e);
+        }
+    }
+
+    // Mở form feedback/đánh giá
+    function openFeedbackForm(orderId){
+        let user = getUser();
+        
+        let feedbackHtml = `
+            <div>
+                <p><strong>Đánh giá nhà hàng này:</strong></p>
+                
+                <div class="mb-3">
+                    <label class="form-label">Số sao <span class="text-danger">*</span></label>
+                    <div>
+                        <input type="radio" name="rating" value="1" id="r1"> <label for="r1">⭐ 1 sao</label><br>
+                        <input type="radio" name="rating" value="2" id="r2"> <label for="r2">⭐⭐ 2 sao</label><br>
+                        <input type="radio" name="rating" value="3" id="r3"> <label for="r3">⭐⭐⭐ 3 sao</label><br>
+                        <input type="radio" name="rating" value="4" id="r4"> <label for="r4">⭐⭐⭐⭐ 4 sao</label><br>
+                        <input type="radio" name="rating" value="5" id="r5" checked> <label for="r5">⭐⭐⭐⭐⭐ 5 sao</label>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Nhận xét (không bắt buộc)</label>
+                    <textarea id="feedbackComment" class="form-control" rows="3" placeholder="Chia sẻ cảm nhận của bạn..."></textarea>
+                </div>
+                
+                <button class="btn btn-primary" onclick="submitFeedback(${orderId}, '${user.id}')">Gửi đánh giá</button>
+                <button class="btn btn-secondary" onclick="closeFeedbackModal()">Hủy</button>
+            </div>
+        `;
+        
+        feedbackContent.innerHTML = feedbackHtml;
+        feedbackModal.style.display = 'block';
+        feedbackModal.classList.add('show');
+        document.body.classList.add('modal-open');
+        
+        // Tạo backdrop
+        let backdrop = document.querySelector('.modal-backdrop');
+        if(!backdrop){
+            backdrop = document.createElement('div');
+            backdrop.className = 'modal-backdrop fade show';
+            document.body.appendChild(backdrop);
+        }
+    }
+
+    // Gửi feedback
+    async function submitFeedback(orderId, userId){
+        let rating = document.querySelector('input[name="rating"]:checked')?.value;
+        let comment = document.getElementById('feedbackComment').value;
+        
+        if(!rating){
+            alert("Vui lòng chọn số sao!");
+            return;
+        }
+        
+        let payload = {
+            userId: userId,
+            orderId: orderId,
+            rating: parseInt(rating),
+            comment: comment || null
+        };
+        
+        try {
+            const res = await fetch("/api/reviews", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(payload)
+            });
+            
+            if(!res.ok){
+                alert("Không thể gửi đánh giá!");
+                return;
+            }
+            
+            alert("Cảm ơn đánh giá của bạn!");
+            closeFeedbackModal();
+            // Reload trang để cập nhật điểm nhà hàng
+            setTimeout(() => {
+                location.reload();
+            }, 1000);
+        } catch(e){
+            alert("Lỗi: " + e.message);
+        }
+    }
+
+    // Đóng feedback modal
+    function closeFeedbackModal(){
+        feedbackModal.style.display = 'none';
+        feedbackModal.classList.remove('show');
+        document.body.classList.remove('modal-open');
+        let backdrop = document.querySelector('.modal-backdrop');
+        if(backdrop) backdrop.remove();
+    }
 </script>

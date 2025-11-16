@@ -66,6 +66,23 @@ public class PaymentService {
     // 🔹 Cập nhật trạng thái payment
     public Payment updatePayment(String id, Payment.PaymentStatus status) {
         Payment payment = getPaymentById(id);
+        
+        // Nếu cập nhật thành COMPLETED, kiểm tra xem đã có COMPLETED payment khác chưa
+        if (status == Payment.PaymentStatus.COMPLETED && 
+            payment.getStatus() != Payment.PaymentStatus.COMPLETED) {
+            
+            List<Payment> completedPayments = paymentRepository.findByOrderIdAndStatus(
+                payment.getOrder().getId(), 
+                Payment.PaymentStatus.COMPLETED
+            );
+            
+            if (!completedPayments.isEmpty()) {
+                throw new RuntimeException(
+                    "Đơn hàng này đã có payment thành công! Không thể tạo payment COMPLETED khác."
+                );
+            }
+        }
+        
         payment.setStatus(status);
         return paymentRepository.save(payment);
     }

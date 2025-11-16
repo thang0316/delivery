@@ -8,6 +8,8 @@ public class UserRequest {
     private String password;
     private String phone;
     private Long roleId;
+    private String restaurantName;
+    private String restaurantAddress;
 	public String getUsername() {
 		return username;
 	}
@@ -50,6 +52,18 @@ public class UserRequest {
 	public void setRoleId(Long roleId) {
 		this.roleId = roleId;
 	}
-    
-    
+	
+	public String getRestaurantName() {
+		return restaurantName;
+	}
+	public void setRestaurantName(String restaurantName) {
+		this.restaurantName = restaurantName;
+	}
+	
+	public String getRestaurantAddress() {
+		return restaurantAddress;
+	}
+	public void setRestaurantAddress(String restaurantAddress) {
+		this.restaurantAddress = restaurantAddress;
+	}
 }
