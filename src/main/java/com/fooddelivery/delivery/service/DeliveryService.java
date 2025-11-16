@@ -37,8 +37,13 @@ public class DeliveryService {
         Delivery delivery = new Delivery();
         delivery.setOrder(order);
         delivery.setDrone(drone);
-        delivery.setCurrentLatitude(request.getCurrentLatitude());
-        delivery.setCurrentLongitude(request.getCurrentLongitude());
+        
+        // Nếu không có toạ độ, dùng mặc định (Hà Nội)
+        double lat = request.getCurrentLatitude() != 0 ? request.getCurrentLatitude() : 21.0285;
+        double lng = request.getCurrentLongitude() != 0 ? request.getCurrentLongitude() : 105.8542;
+        
+        delivery.setCurrentLatitude(lat);
+        delivery.setCurrentLongitude(lng);
 
         // Tạo delivery → đồng bộ trạng thái order + drone
         delivery = deliveryRepository.save(delivery);
@@ -62,6 +67,25 @@ public class DeliveryService {
     public Delivery getDeliveryById(String id) {
         return deliveryRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Delivery not found"));
+    }
+
+    // Lấy delivery theo order id
+    public Delivery getDeliveryByOrderId(String orderId) {
+        try {
+            Long orderIdLong = Long.parseLong(orderId);
+            return deliveryRepository.findByOrder_Id(orderIdLong)
+                    .orElseThrow(() -> new RuntimeException("Delivery not found for order"));
+        } catch (NumberFormatException e) {
+            throw new RuntimeException("Invalid order ID");
+        }
+    }
+
+    // Cập nhật vị trí delivery (giả lập)
+    public Delivery updateDeliveryLocation(String id, double latitude, double longitude) {
+        Delivery delivery = getDeliveryById(id);
+        delivery.setCurrentLatitude(latitude);
+        delivery.setCurrentLongitude(longitude);
+        return deliveryRepository.save(delivery);
     }
     
     public Delivery updateDelivery(String id, DeliveryRequest request) {

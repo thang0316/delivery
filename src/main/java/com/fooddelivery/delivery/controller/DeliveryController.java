@@ -32,6 +32,19 @@ public class DeliveryController {
         return deliveryService.getDeliveryById(id);
     }
 
+    @GetMapping("/order/{orderId}")
+    public Delivery getDeliveryByOrderId(@PathVariable String orderId) {
+        return deliveryService.getDeliveryByOrderId(orderId);
+    }
+
+    @PutMapping("/{id}/location")
+    public Delivery updateDeliveryLocation(
+            @PathVariable String id,
+            @RequestParam double latitude,
+            @RequestParam double longitude) {
+        return deliveryService.updateDeliveryLocation(id, latitude, longitude);
+    }
+
     @PutMapping("/{id}")
     public Delivery updateDelivery(@PathVariable String id, @RequestBody DeliveryRequest request) {
         return deliveryService.updateDelivery(id, request);

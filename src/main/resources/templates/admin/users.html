@@ -90,7 +90,7 @@
                 <thead>
                 <tr>
                     <th>ID</th><th>Tên đăng nhập</th><th>Họ</th><th>Tên</th>
-                    <th>Email</th><th>SĐT</th><th>Vai trò</th><th>Trạng thái</th><th>Hành động</th>
+                    <th>Email</th><th>SĐT</th><th>Vai trò</th><th>Hành động</th>
                 </tr>
                 </thead>
                 <tbody><tr><td colspan="9" class="text-center text-muted">Đang tải...</td></tr></tbody>
@@ -109,7 +109,7 @@
     // ==========================
     async function loadUsers() {
         const tbody = document.querySelector("#userTable tbody");
-        tbody.innerHTML = `<tr><td colspan="9" class="text-center text-muted">Đang tải...</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted">Đang tải...</td></tr>`;
         try {
             const res = await fetch(`${API_BASE}/users`);
             users = await res.json();
@@ -126,7 +126,7 @@
     function renderUsers(list){
         const tbody = document.querySelector("#userTable tbody");
         if (!list.length) {
-            tbody.innerHTML = `<tr><td colspan="9" class="text-center text-muted fst-italic">Không có dữ liệu</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted fst-italic">Không có dữ liệu</td></tr>`;
             return;
         }
 
@@ -139,12 +139,6 @@
                 <td class="editable" data-field="email">${u.email}</td>
                 <td class="editable" data-field="phone">${u.phone}</td>
                 <td class="editable" data-field="roleName">${u.role?.name || "—"}</td>
-
-                <td>
-                    <span class="badge ${u.enabled ? "badge-active" : "badge-disabled"}">
-                        ${u.enabled ? "Hoạt động" : "Vô hiệu"}
-                    </span>
-                </td>
                 <td>
                     <button class="btn btn-sm btn-outline-danger" onclick="deleteUser('${u.id}')">
                         <i class="bi bi-trash"></i>

@@ -189,20 +189,6 @@
                 </div>
             </div>
 
-            <div class="col-lg-3 col-md-6">
-                <div class="card text-center p-4">
-                    <div class="mb-2"><i class="bi bi-cash-coin text-warning" style="font-size:24px;"></i></div>
-                    <h6>Tổng Doanh Thu</h6>
-                    <h2 id="revenueTotal" class="text-warning">0 ₫</h2>
-                </div>
-            </div>
-
-        </div>
-
-        <!-- Revenue Chart -->
-        <div class="card p-4 mb-4">
-            <h5 class="text-primary mb-3"><i class="bi bi-bar-chart-line me-2"></i> Biểu đồ Doanh Thu</h5>
-            <canvas id="revenueChart" height="80"></canvas>
         </div>
 
     </section>
@@ -235,11 +221,27 @@
         if (link) link.classList.add("active");
 
         if (id === "dashboard") {
-            loadCounts();
-            loadRevenueChart();
+            loadStats();
             return;
         }
         if (htmlFile) await loadSectionContent(id, htmlFile);
+    }
+
+    async function loadStats() {
+        try {
+            const [users, orders, drones] = await Promise.all([
+                fetch(window.apiBase + "/users").then(r => r.json()),
+                fetch(window.apiBase + "/orders").then(r => r.json()),
+                fetch(window.apiBase + "/drones").then(r => r.json())
+            ]);
+
+            document.getElementById("userCount").textContent = users.length;
+            document.getElementById("orderCount").textContent = orders.length;
+            document.getElementById("droneCount").textContent = drones.length;
+
+        } catch (err) {
+            console.error("⚠️ Lỗi tải thống kê:", err);
+        }
     }
 
     async function loadSectionContent(sectionId, filePath) {
@@ -304,46 +306,15 @@
         }
     }
 
-    async function loadRevenueChart() {
-        try {
-            const res = await fetch(window.apiBase + "/payments");
-            if (!res.ok) throw new Error("Không thể tải doanh thu!");
-            const payments = await res.json();
-
-            const monthly = {};
-            payments.forEach(p => {
-                const m = new Date(p.createdAt).getMonth() + 1;
-                monthly[m] = (monthly[m] || 0) + (p.amount || 0);
-            });
-
-            const ctx = document.getElementById("revenueChart");
-
-            if (revenueChartInstance) revenueChartInstance.destroy();
-
-            revenueChartInstance = new Chart(ctx, {
-                type: "bar",
-                data: {
-                    labels: Object.keys(monthly).map(m => "Tháng " + m),
-                    datasets: [{
-                        label: "Doanh thu (VND)",
-                        data: Object.values(monthly),
-                        backgroundColor: "rgba(13,110,253,0.5)",
-                        borderColor: "#0d6efd",
-                        borderWidth: 2,
-                        hoverBackgroundColor: "rgba(13,110,253,0.7)"
-                    }]
-                },
-                options: {
-                    scales: { y: { beginAtZero: true } }
-                }
-            });
-
-        } catch (err) {
-            console.error("⚠️ Lỗi biểu đồ:", err);
-        }
-    }
-
-    document.addEventListener("DOMContentLoaded", () => showSection("dashboard"));
+    document.addEventListener("DOMContentLoaded", () => {
+        showSection("dashboard");
+        
+        // Logout handler
+        document.getElementById("logoutBtn").addEventListener("click", () => {
+            localStorage.clear();
+            window.location.href = "/login";
+        });
+    });
 </script>
 
 </body>

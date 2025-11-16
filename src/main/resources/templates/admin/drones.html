@@ -43,31 +43,40 @@
 <script>
     const API = window.apiBase || "http://localhost:8080/api";
     console.log("API Base:", API);
+    
+    let restaurantsCache = null; // Cache nhà hàng
 
     // ========== LOAD RESTAURANTS ==========
-    async function loadRestaurants() {
+    function loadRestaurants() {
         const sel = document.getElementById("restaurantSelect");
 
-        try {
-            const res = await fetch(API + "/restaurants");
-            if(!res.ok) throw new Error("API error: " + res.status);
-            
-            const data = await res.json();
-            console.log("Nhà hàng tải được:", data);
+        console.log("📍 Bắt đầu load restaurants...");
 
-            if(!data || data.length === 0) {
-                sel.innerHTML = `<option disabled selected>Không có nhà hàng</option>`;
-                return;
-            }
+        fetch(API + "/restaurants")
+            .then(res => {
+                console.log("Response status:", res.status);
+                if(!res.ok) throw new Error(`HTTP ${res.status}`);
+                return res.json();
+            })
+            .then(data => {
+                console.log("✓ Restaurants loaded:", data);
+                restaurantsCache = data;
 
-            sel.innerHTML = data.map((r, idx) =>
-                `<option value="${r.id}" ${idx === 0 ? 'selected' : ''}>${r.name}</option>`
-            ).join("");
+                if(!data || data.length === 0) {
+                    console.warn("⚠️ Không có nhà hàng");
+                    sel.innerHTML = `<option value="">-- Chọn nhà hàng --</option>`;
+                    return;
+                }
 
-        } catch (e) {
-            console.error("Lỗi tải nhà hàng:", e);
-            sel.innerHTML = `<option disabled selected>Lỗi tải nhà hàng: ${e.message}</option>`;
-        }
+                sel.innerHTML = `<option value="">-- Chọn nhà hàng --</option>` + 
+                    data.map(r => `<option value="${r.id}">${r.name}</option>`).join("");
+                
+                console.log("✓ Select updated - có", sel.options.length, "nhà hàng");
+            })
+            .catch(err => {
+                console.error("✗ Lỗi fetch restaurants:", err);
+                sel.innerHTML = `<option value="">-- Lỗi tải nhà hàng --</option>`;
+            });
     }
 
     // ========== LOAD DRONES ==========
@@ -126,6 +135,7 @@
         }
 
         alert("🎉 Thêm drone thành công!");
+        restaurantsCache = null;  // Xóa cache để lần sau fetch lại
         loadDrones();
     }
 
@@ -138,6 +148,13 @@
     }
 
     // INIT
-    loadRestaurants();
-    loadDrones();
+    function init() {
+        console.log("🚀 Init page...");
+        // Pre-load restaurants ngay
+        loadRestaurants();
+        // Load drones
+        loadDrones();
+    }
+    
+    init();
 </script>

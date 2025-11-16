@@ -97,11 +97,11 @@
                 <thead>
                 <tr>
                     <th>ID</th><th>Tên nhà hàng</th><th>Địa chỉ</th><th>SĐT</th>
-                    <th>Chủ sở hữu</th><th>Tổng đơn</th><th>Trạng thái</th><th>Hành động</th>
+                    <th>Chủ sở hữu</th><th>Tổng đơn</th><th>Trạng thái</th>
                 </tr>
                 </thead>
                 <tbody>
-                <tr><td colspan="8" class="text-center text-muted fst-italic">Đang tải dữ liệu...</td></tr>
+                <tr><td colspan="7" class="text-center text-muted fst-italic">Đang tải dữ liệu...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -130,7 +130,7 @@
 
     async function loadRestaurants() {
         const tbody = document.querySelector("#restaurantTable tbody");
-        tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted">Đang tải...</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">Đang tải...</td></tr>`;
         try {
             const res = await fetch(`${API_BASE}/restaurants`);
             restaurants = await res.json();
@@ -149,14 +149,14 @@
             updateStats();
 
         } catch {
-            tbody.innerHTML = `<tr><td colspan="8" class="text-danger text-center">Lỗi tải danh sách</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="7" class="text-danger text-center">Lỗi tải danh sách</td></tr>`;
         }
     }
 
     function renderRestaurants(list) {
         const tbody = document.querySelector("#restaurantTable tbody");
         if (!list.length) {
-            tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted fst-italic">Không có nhà hàng nào</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted fst-italic">Không có nhà hàng nào</td></tr>`;
             return;
         }
         tbody.innerHTML = list.map(r => `
@@ -168,7 +168,6 @@
                 <td>${r.owner?.username || "—"}</td>
                 <td class="fw-bold text-center">${r.totalOrders ?? 0}</td>
                 <td><span class="${r.active ? 'badge-open' : 'badge-closed'}">${r.active ? 'Đang hoạt động' : 'Tạm ngưng'}</span></td>
-                <td><button class="btn btn-sm btn-outline-danger" onclick="deleteRestaurant('${r.id}')"><i class="bi bi-trash"></i></button></td>
             </tr>
         `).join("");
     }
