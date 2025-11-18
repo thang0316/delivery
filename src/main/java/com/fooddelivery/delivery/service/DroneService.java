@@ -34,6 +34,15 @@ public class DroneService {
             drone.setStatus(Drone.DroneStatus.AVAILABLE); // mặc định
         }
         drone.setBatteryLevel(request.getBatteryLevel());
+        
+        // Thiết lập vị trí mặc định nếu có
+        if(request.getCurrentLatitude() != null) {
+            drone.setCurrentLatitude(request.getCurrentLatitude());
+        }
+        if(request.getCurrentLongitude() != null) {
+            drone.setCurrentLongitude(request.getCurrentLongitude());
+        }
+        
         drone.setRestaurant(restaurant);
 
         return droneRepository.save(drone);
@@ -89,6 +98,14 @@ public class DroneService {
         return droneRepository.save(drone);
     }
 
+
+    // Cập nhật vị trí drone
+    public Drone updateDroneLocation(String id, double latitude, double longitude) {
+        Drone drone = getDroneById(id);
+        drone.setCurrentLatitude(latitude);
+        drone.setCurrentLongitude(longitude);
+        return droneRepository.save(drone);
+    }
 
     // Xóa drone
     public void deleteDrone(String id) {

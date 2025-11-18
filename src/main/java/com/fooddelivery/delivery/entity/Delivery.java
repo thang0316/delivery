@@ -22,8 +22,6 @@ public class Delivery {
 
     private LocalDateTime startTime;   // Thời gian bắt đầu giao
     private LocalDateTime endTime;     // Thời gian kết thúc giao
-    private double currentLatitude;    // Vĩ độ hiện tại của drone
-    private double currentLongitude;   // Kinh độ hiện tại của drone
 
     // ➕ Trạng thái giao hàng
     @Enumerated(EnumType.STRING)
@@ -85,18 +83,6 @@ public class Delivery {
     }
     public void setEndTime(LocalDateTime endTime) {
         this.endTime = endTime;
-    }
-    public double getCurrentLatitude() {
-        return currentLatitude;
-    }
-    public void setCurrentLatitude(double currentLatitude) {
-        this.currentLatitude = currentLatitude;
-    }
-    public double getCurrentLongitude() {
-        return currentLongitude;
-    }
-    public void setCurrentLongitude(double currentLongitude) {
-        this.currentLongitude = currentLongitude;
     }
     public DeliveryStatus getStatus() {
         return status;

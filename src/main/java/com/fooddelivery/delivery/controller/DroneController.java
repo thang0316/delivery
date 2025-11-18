@@ -55,6 +55,16 @@ public class DroneController {
         return ResponseEntity.ok(updated);
     }
 
+    // ===================== CẬP NHẬT VỊ TRÍ =====================
+    @PutMapping("/{id}/location")
+    public ResponseEntity<Drone> updateDroneLocation(
+            @PathVariable String id,
+            @RequestParam double latitude,
+            @RequestParam double longitude) {
+        Drone updated = droneService.updateDroneLocation(id, latitude, longitude);
+        return ResponseEntity.ok(updated);
+    }
+
     // ===================== XÓA =====================
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteDrone(@PathVariable String id) {

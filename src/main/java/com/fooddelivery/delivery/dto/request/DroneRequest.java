@@ -4,6 +4,8 @@ public class DroneRequest {
 	private String model;
     private String status;
     private Double batteryLevel;
+    private Double currentLatitude;
+    private Double currentLongitude;
     
     private String restaurantId;
 
@@ -38,8 +40,20 @@ public class DroneRequest {
 	public void setRestaurantId(String restaurantId) {
 		this.restaurantId = restaurantId;
 	}
-   
-	
-    
-    
+
+	public Double getCurrentLatitude() {
+		return currentLatitude;
+	}
+
+	public void setCurrentLatitude(Double currentLatitude) {
+		this.currentLatitude = currentLatitude;
+	}
+
+	public Double getCurrentLongitude() {
+		return currentLongitude;
+	}
+
+	public void setCurrentLongitude(Double currentLongitude) {
+		this.currentLongitude = currentLongitude;
+	}
 }

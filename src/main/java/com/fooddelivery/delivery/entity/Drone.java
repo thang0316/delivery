@@ -28,6 +28,9 @@ public class Drone {
 
     private double batteryLevel;
 
+    private double currentLatitude;    // Vĩ độ hiện tại của drone
+    private double currentLongitude;   // Kinh độ hiện tại của drone
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "restaurant_id", nullable = false)
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
@@ -72,5 +75,21 @@ public class Drone {
 
     public void setRestaurant(Restaurant restaurant) {
         this.restaurant = restaurant;
+    }
+
+    public double getCurrentLatitude() {
+        return currentLatitude;
+    }
+
+    public void setCurrentLatitude(double currentLatitude) {
+        this.currentLatitude = currentLatitude;
+    }
+
+    public double getCurrentLongitude() {
+        return currentLongitude;
+    }
+
+    public void setCurrentLongitude(double currentLongitude) {
+        this.currentLongitude = currentLongitude;
     }
 }
