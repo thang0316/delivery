@@ -338,7 +338,7 @@
             }
             const delivery = await delRes.json();
             
-            if(!delivery.currentLatitude || !delivery.currentLongitude){
+            if(!delivery.drone?.currentLatitude || !delivery.drone?.currentLongitude){
                 alert("Vị trí giao hàng chưa được cập nhật!");
                 return;
             }
@@ -351,8 +351,8 @@
                         <p><strong>Trạng thái:</strong> <span class="badge bg-primary">${delivery.status}</span></p>
                     </div>
                     <div class="col-md-6">
-                        <p><strong>Vĩ độ:</strong> ${delivery.currentLatitude.toFixed(6)}</p>
-                        <p><strong>Kinh độ:</strong> ${delivery.currentLongitude.toFixed(6)}</p>
+                        <p><strong>Vĩ độ:</strong> ${delivery.drone.currentLatitude.toFixed(6)}</p>
+                        <p><strong>Kinh độ:</strong> ${delivery.drone.currentLongitude.toFixed(6)}</p>
                     </div>
                 </div>
                 ${delivery.startTime ? `<p><strong>Bắt đầu:</strong> ${new Date(delivery.startTime).toLocaleString("vi-VN")}</p>` : ''}
@@ -363,7 +363,7 @@
             // Init map
             if(!trackingMap){
                 trackingMap = L.map('trackingMap', {
-                    center: [delivery.currentLatitude, delivery.currentLongitude],
+                    center: [delivery.drone.currentLatitude, delivery.drone.currentLongitude],
                     zoom: 15
                 });
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -371,12 +371,12 @@
                     maxZoom: 19
                 }).addTo(trackingMap);
             } else {
-                trackingMap.setView([delivery.currentLatitude, delivery.currentLongitude], 15);
+                trackingMap.setView([delivery.drone.currentLatitude, delivery.drone.currentLongitude], 15);
             }
 
             // Add marker
             if(trackingMarker) trackingMap.removeLayer(trackingMarker);
-            trackingMarker = L.marker([delivery.currentLatitude, delivery.currentLongitude], {
+            trackingMarker = L.marker([delivery.drone.currentLatitude, delivery.drone.currentLongitude], {
                 icon: L.icon({
                     iconUrl: 'https://cdn-icons-png.flaticon.com/512/3597/3597911.png',
                     iconSize: [40, 40],

@@ -40,7 +40,7 @@ async function createDrone() {
         return;
     }
 
-    const body = { droneId, status, currentLatitude: 0, currentLongitude: 0 };
+    const body = { droneId, status };
 
     try {
         const res = await fetch(api, {

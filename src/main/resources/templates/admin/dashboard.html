@@ -285,27 +285,6 @@
         }
     }
 
-    async function loadCounts() {
-        try {
-            const [users, orders, drones, payments] = await Promise.all([
-                fetch(window.apiBase + "/users").then(r => r.json()),
-                fetch(window.apiBase + "/orders").then(r => r.json()),
-                fetch(window.apiBase + "/drones").then(r => r.json()),
-                fetch(window.apiBase + "/payments").then(r => r.json())
-            ]);
-
-            document.getElementById("userCount").textContent = users.length;
-            document.getElementById("orderCount").textContent = orders.length;
-            document.getElementById("droneCount").textContent = drones.length;
-
-            const total = payments.reduce((sum, p) => sum + (p.amount || 0), 0);
-            document.getElementById("revenueTotal").textContent = total.toLocaleString("vi-VN") + " ₫";
-
-        } catch (err) {
-            console.error("⚠️ Lỗi tải thống kê:", err);
-        }
-    }
-
     document.addEventListener("DOMContentLoaded", () => {
         showSection("dashboard");
         

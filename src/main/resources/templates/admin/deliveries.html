@@ -1,5 +1,3 @@
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css" />
-<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
 
 <div class="container p-3">
@@ -10,12 +8,12 @@
         <div class="row g-2">
             <div class="col-md-4">
                 <select id="orderSelectDelivery" class="form-select">
-                    <option disabled selected>Đang tải...</option>
+                    <option disabled selected>Đang tải đơn hàng...</option>
                 </select>
             </div>
             <div class="col-md-4">
-                <select id="droneSelect" class="form-select">
-                    <option disabled selected>Đang tải...</option>
+                <select id="droneSelect" class="form-select" disabled>
+                    <option disabled selected>Chọn đơn hàng trước</option>
                 </select>
             </div>
             <div class="col-md-4 text-end">
@@ -24,36 +22,12 @@
         </div>
     </div>
 
-    <div class="p-3 border bg-white rounded mb-3">
-        <h5 class="text-info mb-3">📍 Cập nhật vị trí Drone</h5>
-        <div class="row g-2">
-            <div class="col-md-3">
-                <select id="deliverySelectLocation" class="form-select">
-                    <option disabled selected>Chọn delivery...</option>
-                </select>
-            </div>
-            <div class="col-md-2">
-                <input id="simLatitude" type="number" class="form-control" placeholder="Vĩ độ" step="0.000001" value="21.0285">
-            </div>
-            <div class="col-md-2">
-                <input id="simLongitude" type="number" class="form-control" placeholder="Kinh độ" step="0.000001" value="105.8542">
-            </div>
-            <div class="col-md-2">
-                <button onclick="updateSimulatedLocation()" class="btn btn-info w-100">Cập nhật</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="deliveryMap" style="height: 400px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"></div>
-
     <table class="table table-striped align-middle">
         <thead class="table-primary">
         <tr>
             <th>ID</th>
             <th>Đơn hàng</th>
             <th>Drone</th>
-            <th>Vĩ độ</th>
-            <th>Kinh độ</th>
             <th>Trạng thái</th>
             <th>Bắt đầu</th>
             <th>Kết thúc</th>
@@ -61,92 +35,55 @@
         </tr>
         </thead>
         <tbody id="deliveryTable">
-        <tr><td colspan="9" class="text-center text-muted">Đang tải...</td></tr>
+        <tr><td colspan="7" class="text-center text-muted">Đang tải...</td></tr>
         </tbody>
     </table>
 </div>
 
 <script>
     var API = window.apiBase || "http://localhost:8080/api";
-    var map = null;
-    var mapInit = false;
-
-    function initMap() {
-        if(mapInit || !window.L) return;
-        mapInit = true;
-        
-        try {
-            map = L.map('deliveryMap', {center: [21.0285, 105.8542], zoom: 13});
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom: 19}).addTo(map);
-            console.log("✅ Map ready");
-        } catch(e) {
-            console.error("Map error:", e);
-            createPlaceholder();
-        }
-    }
-    
-    function createPlaceholder() {
-        document.getElementById('deliveryMap').innerHTML = 
-            '<div style="width:100%;height:100%;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;color:white;text-align:center;padding:20px;box-sizing:border-box"><div><div style="font-size:24px">🗺️</div><div>Map unavailable</div></div></div>';
-    }
-
-    function updateMarkers(data) {
-        if(!map) return;
-        try {
-            // Clear old markers
-            if(map._layers) {
-                Object.keys(map._layers).forEach(key => {
-                    let layer = map._layers[key];
-                    if(layer && layer instanceof L.Marker) {
-                        map.removeLayer(layer);
-                    }
-                });
-            }
-            
-            data.forEach(d => {
-                if(d.currentLatitude && d.currentLongitude) {
-                    // Create HTML icon with drone emoji
-                    var customIcon = L.divIcon({
-                        html: `<div style="background:#0d6efd; color:white; padding:4px 8px; border-radius:50%; text-align:center; font-weight:bold; width:24px; height:24px; display:flex; align-items:center; justify-content:center;">🚁</div>`,
-                        iconSize: [32, 32],
-                        className: 'drone-marker'
-                    });
-                    
-                    L.marker([d.currentLatitude, d.currentLongitude], {
-                        icon: customIcon
-                    }).bindPopup(`<small>Delivery #${d.id}<br>Order: #${d.order?.id}<br>Status: <strong>${d.status}</strong></small>`).addTo(map);
-                }
-            });
-            
-            console.log("✅ Markers updated:", data.length);
-        } catch(e) { 
-            console.error("Marker error:", e); 
-        }
-    }
 
     function loadOrders() {
         fetch(API + "/orders")
             .then(r => r.json())
             .then(data => {
                 const orders = data.filter(o => o.status === 'CONFIRMED');
-                let html = orders.map(o => `<option value="${o.id}" data-rid="${o.restaurant?.id}">#${o.id} - ${o.customer?.fullName}</option>`).join("");
-                document.getElementById("orderSelectDelivery").innerHTML = html || '<option disabled>No orders</option>';
+                let html = '<option disabled selected>Chọn đơn hàng</option>' + 
+                    orders.map(o => `<option value="${o.id}" data-rid="${o.restaurant?.id}">#${o.id} - ${o.customer?.fullName}</option>`).join("");
+                document.getElementById("orderSelectDelivery").innerHTML = html || '<option disabled>Không có đơn hàng</option>';
                 document.getElementById("orderSelectDelivery").addEventListener('change', filterDrones);
             })
-            .catch(e => console.error(e));
+            .catch(e => {
+                console.error(e);
+                document.getElementById("orderSelectDelivery").innerHTML = '<option disabled>Lỗi tải dữ liệu</option>';
+            });
     }
 
     function filterDrones() {
-        var opt = document.querySelector('#orderSelectDelivery [selected]') || document.querySelector('#orderSelectDelivery option:checked');
-        if(!opt) return;
+        var opt = document.querySelector('#orderSelectDelivery option:checked');
+        if(!opt || opt.disabled) {
+            document.getElementById("droneSelect").innerHTML = '<option disabled selected>Chọn đơn hàng trước</option>';
+            document.getElementById("droneSelect").disabled = true;
+            return;
+        }
+        
         var rid = opt.getAttribute('data-rid');
+        
+        // Show loading
+        document.getElementById("droneSelect").innerHTML = '<option disabled selected>Đang tải drone...</option>';
+        document.getElementById("droneSelect").disabled = false;
         
         fetch(API + "/drones")
             .then(r => r.json())
             .then(data => {
                 const drones = data.filter(d => d.restaurant?.id == rid && d.status === 'AVAILABLE');
-                let html = drones.map(d => `<option value="${d.id}">${d.model}</option>`).join("");
-                document.getElementById("droneSelect").innerHTML = html || '<option disabled>No drones</option>';
+                let html = '<option disabled selected>Chọn drone</option>' + 
+                    drones.map(d => `<option value="${d.id}">${d.model} (${d.batteryLevel}%)</option>`).join("");
+                document.getElementById("droneSelect").innerHTML = html || '<option disabled selected>Không có drone khả dụng</option>';
+            })
+            .catch(e => {
+                console.error(e);
+                document.getElementById("droneSelect").innerHTML = '<option disabled>Lỗi tải drone</option>';
             });
     }
 
@@ -155,18 +92,11 @@
             .then(r => r.json())
             .then(data => {
                 console.log("📦", data.length, "deliveries");
-                // Don't update markers here, wait for map init
-                // updateMarkers(data);
-                
-                let opts = data.map(d => `<option value="${d.id}">#${d.id}</option>`).join("");
-                document.getElementById("deliverySelectLocation").innerHTML = '<option disabled selected>Choose...</option>' + opts;
                 
                 let rows = data.map(d => `<tr>
                     <td>${d.id}</td>
                     <td>#${d.order?.id || "-"}</td>
                     <td>${d.drone?.model || "-"}</td>
-                    <td>${d.currentLatitude?.toFixed(6) || "-"}</td>
-                    <td>${d.currentLongitude?.toFixed(6) || "-"}</td>
                     <td><select class="form-select form-select-sm" onchange="changeStatus('${d.id}', this.value)">
                         <option value="DELIVERING" ${d.status === 'DELIVERING' ? 'selected' : ''}>DELIVERING</option>
                         <option value="COMPLETED" ${d.status === 'COMPLETED' ? 'selected' : ''}>COMPLETED</option>
@@ -176,11 +106,7 @@
                     <td>${d.endTime || "-"}</td>
                     <td><button class="btn btn-sm btn-danger" onclick="deleteDelivery('${d.id}')">Delete</button></td>
                 </tr>`).join("");
-                document.getElementById("deliveryTable").innerHTML = rows || '<tr><td colspan="9" class="text-center">No deliveries</td></tr>';
-                
-                // Update markers after map init
-                window.deliveriesData = data;
-                if(map) updateMarkers(data);
+                document.getElementById("deliveryTable").innerHTML = rows || '<tr><td colspan="7" class="text-center">No deliveries</td></tr>';
             });
     }
 
@@ -192,7 +118,7 @@
         fetch(API + "/deliveries", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({orderId: oid, droneId: did, currentLatitude: 0, currentLongitude: 0})
+            body: JSON.stringify({orderId: oid, droneId: did})
         }).then(r => r.ok && loadDeliveries());
     }
 
@@ -219,58 +145,6 @@
             .then(() => loadDeliveries());
     }
 
-    function updateSimulatedLocation() {
-        let did = document.getElementById("deliverySelectLocation").value;
-        let lat = parseFloat(document.getElementById("simLatitude").value);
-        let lng = parseFloat(document.getElementById("simLongitude").value);
-        
-        if(!did || isNaN(lat) || isNaN(lng)) { 
-            alert("❌ Select delivery & enter coords"); 
-            return; 
-        }
-        
-        fetch(API + "/deliveries/" + did + "/location?latitude=" + lat + "&longitude=" + lng, {
-            method: "PUT",
-            headers: {"Content-Type": "application/json"}
-        })
-        .then(r => {
-            if (!r.ok) {
-                alert("❌ Lỗi cập nhật vị trí: " + r.status);
-                return;
-            }
-            alert("✅ Vị trí cập nhật thành công!");
-            console.log("✅ Location updated to:", lat, lng);
-            loadDeliveries();
-        })
-        .catch(e => {
-            alert("❌ Error: " + e.message);
-            console.error("Location update error:", e);
-        });
-    }
-
     loadOrders();
     loadDeliveries();
-    
-    // Lazy init map - chỉ load khi container visible
-    function lazyInitMap() {
-        var container = document.getElementById('deliveryMap');
-        if(!container) return;
-        
-        // Check if visible
-        var rect = container.getBoundingClientRect();
-        if(rect.top < window.innerHeight && rect.bottom > 0 && container.offsetHeight > 0) {
-            if(window.L && !mapInit) {
-                console.log("📍 Map visible, initializing...");
-                initMap();
-            }
-        }
-    }
-    
-    // Trigger on scroll
-    window.addEventListener('scroll', lazyInitMap, {passive: true});
-    
-    // Also try after 300ms
-    setTimeout(() => {
-        if(window.L) lazyInitMap();
-    }, 300);
 </script>

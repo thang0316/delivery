@@ -21,6 +21,9 @@ public class DeliveryService {
     @Autowired
     private DroneRepository droneRepository;
 
+    @Autowired
+    private DroneService droneService;
+
     // Tạo mới giao hàng
     public Delivery createDelivery(DeliveryRequest request) {
         Order order = orderRepository.findById(request.getOrderId())
@@ -46,6 +49,13 @@ public class DeliveryService {
         // Cập nhật drone đang giao
         drone.setStatus(DroneStatus.DELIVERING);
         droneRepository.save(drone);
+
+        // ⭐ Di chuyển drone đến địa chỉ khách hàng (giả lập - TỪ TỪ)
+        if(order.getDeliveryLatitude() != null && order.getDeliveryLongitude() != null) {
+            droneService.moveDroneToCustomerAsync(drone.getId(), 
+                order.getDeliveryLatitude(), 
+                order.getDeliveryLongitude());
+        }
 
         return delivery;
     }
@@ -80,15 +90,33 @@ public class DeliveryService {
         if (status == Delivery.DeliveryStatus.COMPLETED) {
             delivery.markCompleted(); 
             delivery.getOrder().setStatus(Order.OrderStatus.COMPLETED);
-            delivery.getDrone().setStatus(Drone.DroneStatus.AVAILABLE); // Drone sẵn sàng
+            // ⚠️ KHÔNG set AVAILABLE ngay - để animation callback xử lý sau khi bay về xong
+            // delivery.getDrone().setStatus(Drone.DroneStatus.AVAILABLE);
+            
+            // ⭐ Drone bay về nhà hàng (giả lập - TỪ TỪ), sau đó tự động set AVAILABLE
+            droneService.moveDroneToRestaurantAsync(delivery.getDrone().getId(), true);
+            
         } else if (status == Delivery.DeliveryStatus.CANCELED) {
             delivery.markCanceled();
             delivery.getOrder().setStatus(Order.OrderStatus.CANCELED);
-            delivery.getDrone().setStatus(Drone.DroneStatus.AVAILABLE); // Drone sẵn sàng
+            // ⚠️ KHÔNG set AVAILABLE ngay - để animation callback xử lý sau khi bay về xong
+            // delivery.getDrone().setStatus(Drone.DroneStatus.AVAILABLE);
+            
+            // ⭐ Drone bay về nhà hàng (giả lập - TỪ TỪ), sau đó tự động set AVAILABLE
+            droneService.moveDroneToRestaurantAsync(delivery.getDrone().getId(), true);
+            
         } else if (status == Delivery.DeliveryStatus.DELIVERING) {
             delivery.setStatus(Delivery.DeliveryStatus.DELIVERING);
             delivery.getOrder().setStatus(Order.OrderStatus.DELIVERING);
             delivery.getDrone().setStatus(Drone.DroneStatus.DELIVERING); // Drone đang giao
+            
+            // ⭐ Drone bay đến khách hàng (giả lập - TỪ TỪ)
+            Order order = delivery.getOrder();
+            if(order.getDeliveryLatitude() != null && order.getDeliveryLongitude() != null) {
+                droneService.moveDroneToCustomerAsync(delivery.getDrone().getId(),
+                    order.getDeliveryLatitude(),
+                    order.getDeliveryLongitude());
+            }
         }
 
         orderRepository.save(delivery.getOrder());

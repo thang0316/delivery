@@ -24,6 +24,9 @@ public class Order {
     @Column(nullable = false)
     private String customerAddress;
 
+    private Double deliveryLatitude;   // Vĩ độ địa chỉ giao hàng
+    private Double deliveryLongitude;  // Kinh độ địa chỉ giao hàng
+
     // Tổng tiền
     @Column(nullable = false)
     private Double totalAmount;
@@ -80,6 +83,12 @@ public class Order {
 
     public String getCustomerAddress() { return customerAddress; }
     public void setCustomerAddress(String customerAddress) { this.customerAddress = customerAddress; }
+
+    public Double getDeliveryLatitude() { return deliveryLatitude; }
+    public void setDeliveryLatitude(Double deliveryLatitude) { this.deliveryLatitude = deliveryLatitude; }
+
+    public Double getDeliveryLongitude() { return deliveryLongitude; }
+    public void setDeliveryLongitude(Double deliveryLongitude) { this.deliveryLongitude = deliveryLongitude; }
 
     public Double getTotalAmount() { return totalAmount; }
     public void setTotalAmount(Double totalAmount) { this.totalAmount = totalAmount; }

@@ -36,6 +36,8 @@ public class RestaurantService {
         restaurant.setOwner(owner);  // sửa lỗi ownerUser
         restaurant.setName(request.getName());
         restaurant.setAddress(request.getAddress());
+        restaurant.setLatitude(request.getLatitude());
+        restaurant.setLongitude(request.getLongitude());
         restaurant.setPhone(request.getPhone());
         restaurant.setActive(request.getActive());
         restaurant.setCreatedAt(LocalDateTime.now());
@@ -68,6 +70,8 @@ public class RestaurantService {
 
         restaurant.setName(request.getName());
         restaurant.setAddress(request.getAddress());
+        restaurant.setLatitude(request.getLatitude());
+        restaurant.setLongitude(request.getLongitude());
         restaurant.setPhone(request.getPhone());
         restaurant.setOwner(owner);
         restaurant.setActive(request.getActive());

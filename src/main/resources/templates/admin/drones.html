@@ -1,3 +1,6 @@
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css" />
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js"></script>
+
 <h3 class="text-primary mb-3">🚁 Quản lý Drone</h3>
 
 <div class="card p-3 mb-4">
@@ -24,6 +27,8 @@
     </div>
 </div>
 
+<div id="droneMap" style="height: 400px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"></div>
+
 <table class="table table-bordered table-striped">
     <thead class="table-primary">
     <tr>
@@ -31,12 +36,14 @@
         <th>Model</th>
         <th>Pin</th>
         <th>Trạng thái</th>
+        <th>Vĩ độ</th>
+        <th>Kinh độ</th>
         <th>Nhà hàng</th>
         <th>Xóa</th>
     </tr>
     </thead>
     <tbody id="droneTable">
-    <tr><td colspan="6" class="text-center">Đang tải...</td></tr>
+    <tr><td colspan="8" class="text-center">Đang tải...</td></tr>
     </tbody>
 </table>
 
@@ -45,6 +52,97 @@
     console.log("API Base:", API);
     
     let restaurantsCache = null; // Cache nhà hàng
+    let map = null;
+    let mapInit = false;
+    let autoRefreshInterval = null;
+    let isAutoRefreshEnabled = true;
+    let refreshIntervalMs = 2000; // 2 giây
+
+    // ========== MAP FUNCTIONS ==========
+    function initMap() {
+        if(mapInit || !window.L) return;
+        mapInit = true;
+        
+        try {
+            map = L.map('droneMap', {center: [21.0285, 105.8542], zoom: 13});
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom: 19}).addTo(map);
+            console.log("✅ Map ready");
+        } catch(e) {
+            console.error("Map error:", e);
+            createPlaceholder();
+        }
+    }
+    
+    function createPlaceholder() {
+        document.getElementById('droneMap').innerHTML = 
+            '<div style="width:100%;height:100%;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;color:white;text-align:center;padding:20px;box-sizing:border-box"><div><div style="font-size:24px">🗺️</div><div>Map unavailable</div></div></div>';
+    }
+
+    function updateMarkers(data) {
+        if(!map) return;
+        try {
+            // Clear old markers
+            if(map._layers) {
+                Object.keys(map._layers).forEach(key => {
+                    let layer = map._layers[key];
+                    if(layer && layer instanceof L.Marker) {
+                        map.removeLayer(layer);
+                    }
+                });
+            }
+            
+            data.forEach(d => {
+                if(d.currentLatitude && d.currentLongitude) {
+                    // Màu theo trạng thái
+                    let color = '#6c757d'; // OFFLINE - gray
+                    let statusEmoji = '⚫';
+                    
+                    if(d.status === 'AVAILABLE') {
+                        color = '#28a745'; // green
+                        statusEmoji = '🟢';
+                    } else if(d.status === 'DELIVERING') {
+                        color = '#0d6efd'; // blue
+                        statusEmoji = '🔵';
+                    } else if(d.status === 'CHARGING') {
+                        color = '#ffc107'; // yellow
+                        statusEmoji = '🟡';
+                    }
+                    
+                    // Create animated icon with drone emoji
+                    var customIcon = L.divIcon({
+                        html: `<div style="background:${color}; color:white; padding:6px 10px; border-radius:50%; text-align:center; font-weight:bold; width:32px; height:32px; display:flex; align-items:center; justify-content:center; box-shadow: 0 2px 6px rgba(0,0,0,0.3); animation: pulse 2s infinite;">🚁</div>`,
+                        iconSize: [32, 32],
+                        className: 'drone-marker'
+                    });
+                    
+                    let popupContent = `
+                        <div style="min-width: 180px;">
+                            <h6 style="margin:0 0 8px 0; color: ${color};">
+                                ${statusEmoji} ${d.model}
+                            </h6>
+                            <small>
+                                <strong>ID:</strong> ${d.id}<br>
+                                <strong>Trạng thái:</strong> <span style="color: ${color};">${d.status}</span><br>
+                                <strong>Pin:</strong> ${d.batteryLevel}%<br>
+                                <strong>Vị trí:</strong><br>
+                                • Vĩ độ: ${d.currentLatitude.toFixed(6)}<br>
+                                • Kinh độ: ${d.currentLongitude.toFixed(6)}<br>
+                                <strong>Nhà hàng:</strong> ${d.restaurant?.name || '—'}
+                            </small>
+                        </div>
+                    `;
+                    
+                    L.marker([d.currentLatitude, d.currentLongitude], {
+                        icon: customIcon
+                    }).bindPopup(popupContent).addTo(map);
+                }
+            });
+            
+            console.log("✅ Markers updated:", data.length, "drones at", new Date().toLocaleTimeString());
+        } catch(e) { 
+            console.error("Marker error:", e); 
+        }
+    }
 
     // ========== LOAD RESTAURANTS ==========
     function loadRestaurants() {
@@ -88,25 +186,74 @@
             const data = await res.json();
 
             if (!data.length) {
-                tbody.innerHTML = `<tr><td colspan="6" class="text-center">Chưa có drone nào</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="8" class="text-center">Chưa có drone nào</td></tr>`;
+                if(map) updateMarkers([]); // Clear markers
                 return;
             }
 
-            tbody.innerHTML = data.map(d => `
+            tbody.innerHTML = data.map(d => {
+                let statusColor = '#6c757d';
+                if(d.status === 'AVAILABLE') statusColor = '#28a745';
+                else if(d.status === 'DELIVERING') statusColor = '#0d6efd';
+                else if(d.status === 'CHARGING') statusColor = '#ffc107';
+                
+                return `
                 <tr>
                     <td>${d.id}</td>
                     <td>${d.model}</td>
                     <td>${d.batteryLevel}%</td>
-                    <td>${d.status}</td>
+                    <td><span style="color: ${statusColor}; font-weight: bold;">●</span> ${d.status}</td>
+                    <td>${d.currentLatitude?.toFixed(6) || "—"}</td>
+                    <td>${d.currentLongitude?.toFixed(6) || "—"}</td>
                     <td>${d.restaurant?.name || "—"}</td>
                     <td>
                         <button class="btn btn-sm btn-danger" onclick="deleteDrone('${d.id}')">Xóa</button>
                     </td>
                 </tr>
-            `).join("");
+            `}).join("");
+
+            // Update markers on map
+            if(map) updateMarkers(data);
 
         } catch (err) {
-            tbody.innerHTML = `<tr><td colspan="6" class="text-danger text-center">Lỗi tải drone</td></tr>`;
+            console.error("Load drones error:", err);
+            tbody.innerHTML = `<tr><td colspan="8" class="text-danger text-center">Lỗi tải drone</td></tr>`;
+        }
+    }
+    
+    // ========== AUTO REFRESH ==========
+    function startAutoRefresh() {
+        if(autoRefreshInterval) clearInterval(autoRefreshInterval);
+        
+        autoRefreshInterval = setInterval(() => {
+            if(isAutoRefreshEnabled) {
+                loadDrones(); // Chỉ refresh bản đồ, không refresh toàn bộ bảng
+            }
+        }, refreshIntervalMs);
+        
+        console.log("🔄 Auto-refresh started:", refreshIntervalMs + "ms");
+    }
+    
+    function stopAutoRefresh() {
+        if(autoRefreshInterval) {
+            clearInterval(autoRefreshInterval);
+            autoRefreshInterval = null;
+        }
+        console.log("⏸️ Auto-refresh stopped");
+    }
+    
+    function toggleAutoRefresh() {
+        isAutoRefreshEnabled = !isAutoRefreshEnabled;
+        const btn = document.getElementById("toggleAutoRefresh");
+        
+        if(isAutoRefreshEnabled) {
+            btn.innerHTML = '<i class="bi bi-pause-fill"></i> Tạm dừng';
+            btn.className = 'btn btn-sm btn-primary';
+            console.log("▶️ Auto-refresh resumed");
+        } else {
+            btn.innerHTML = '<i class="bi bi-play-fill"></i> Tiếp tục';
+            btn.className = 'btn btn-sm btn-secondary';
+            console.log("⏸️ Auto-refresh paused");
         }
     }
 
@@ -154,7 +301,38 @@
         loadRestaurants();
         // Load drones
         loadDrones();
+        
+        // Lazy init map
+        setTimeout(() => {
+            if(window.L) {
+                initMap();
+                // Start auto-refresh after map is ready
+                setTimeout(() => startAutoRefresh(), 1000);
+            }
+        }, 300);
     }
+    
+    // Cleanup khi rời trang
+    window.addEventListener('beforeunload', () => {
+        stopAutoRefresh();
+    });
     
     init();
 </script>
+
+<style>
+    @keyframes pulse {
+        0%, 100% {
+            transform: scale(1);
+            opacity: 1;
+        }
+        50% {
+            transform: scale(1.1);
+            opacity: 0.8;
+        }
+    }
+    
+    .drone-marker {
+        transition: all 0.3s ease;
+    }
+</style>

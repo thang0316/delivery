@@ -8,6 +8,8 @@ public class OrderRequest {
     private String customerName;
     private String customerPhone;
     private String customerAddress;
+    private Double deliveryLatitude;
+    private Double deliveryLongitude;
     private List<OrderItemRequest> items;
 	public String getUserId() {
 		return userId;
@@ -38,6 +40,18 @@ public class OrderRequest {
 	}
 	public void setCustomerAddress(String customerAddress) {
 		this.customerAddress = customerAddress;
+	}
+	public Double getDeliveryLatitude() {
+		return deliveryLatitude;
+	}
+	public void setDeliveryLatitude(Double deliveryLatitude) {
+		this.deliveryLatitude = deliveryLatitude;
+	}
+	public Double getDeliveryLongitude() {
+		return deliveryLongitude;
+	}
+	public void setDeliveryLongitude(Double deliveryLongitude) {
+		this.deliveryLongitude = deliveryLongitude;
 	}
 	public List<OrderItemRequest> getItems() {
 		return items;

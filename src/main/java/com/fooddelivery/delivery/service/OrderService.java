@@ -48,6 +48,8 @@ public class OrderService {
         order.setCustomerName(request.getCustomerName());
         order.setCustomerPhone(request.getCustomerPhone());
         order.setCustomerAddress(request.getCustomerAddress());
+        order.setDeliveryLatitude(request.getDeliveryLatitude());
+        order.setDeliveryLongitude(request.getDeliveryLongitude());
         order.setStatus(OrderStatus.PENDING); // Mặc định chưa xác nhận
 
         double total = 0.0;

@@ -1,8 +1,105 @@
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css" />
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js"></script>
+
+<style>
+    .autocomplete-suggestions {
+        position: absolute;
+        background: white;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        max-height: 200px;
+        overflow-y: auto;
+        z-index: 1000;
+        width: 100%;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .autocomplete-suggestion {
+        padding: 8px 12px;
+        cursor: pointer;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .autocomplete-suggestion:hover {
+        background-color: #f0f0f0;
+    }
+</style>
+
 <h3>Thanh toán đơn hàng</h3>
 
 <div id="checkoutBox">Đang tải...</div>
 
 <script>
+    let deliveryMap = null;
+    let deliveryMarker = null;
+    let searchTimeout = null;
+
+    // Geocoding: Tìm kiếm địa chỉ -> toạ độ
+    async function searchAddress(query, suggestionsDiv, latInput, lngInput, map, markerRef) {
+        if (query.length < 3) {
+            suggestionsDiv.style.display = 'none';
+            return;
+        }
+
+        try {
+            const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`);
+            const results = await response.json();
+
+            if (results.length === 0) {
+                suggestionsDiv.style.display = 'none';
+                return;
+            }
+
+            suggestionsDiv.innerHTML = results.map(r => 
+                `<div class="autocomplete-suggestion" data-lat="${r.lat}" data-lon="${r.lon}" data-name="${r.display_name}">
+                    ${r.display_name}
+                </div>`
+            ).join('');
+            suggestionsDiv.style.display = 'block';
+
+            // Handle click on suggestion
+            suggestionsDiv.querySelectorAll('.autocomplete-suggestion').forEach(item => {
+                item.addEventListener('click', function() {
+                    const lat = parseFloat(this.dataset.lat);
+                    const lon = parseFloat(this.dataset.lon);
+                    const name = this.dataset.name;
+
+                    document.getElementById(latInput).value = lat.toFixed(6);
+                    document.getElementById(lngInput).value = lon.toFixed(6);
+                    document.getElementById('addr').value = name;
+                    suggestionsDiv.style.display = 'none';
+
+                    // Move map to location
+                    map.setView([lat, lon], 15);
+                    
+                    // Remove old marker
+                    if (window[markerRef]) {
+                        map.removeLayer(window[markerRef]);
+                    }
+                    
+                    // Add new marker
+                    window[markerRef] = L.marker([lat, lon]).addTo(map)
+                        .bindPopup(`<b>${name}</b><br>Vĩ độ: ${lat.toFixed(6)}<br>Kinh độ: ${lon.toFixed(6)}`).openPopup();
+                });
+            });
+        } catch (error) {
+            console.error('Geocoding error:', error);
+        }
+    }
+
+    // Reverse Geocoding: Toạ độ -> địa chỉ
+    async function reverseGeocode(lat, lon, addressInput) {
+        try {
+            const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
+            const result = await response.json();
+            
+            if (result.display_name) {
+                document.getElementById(addressInput).value = result.display_name;
+            }
+        } catch (error) {
+            console.error('Reverse geocoding error:', error);
+        }
+    }
     /* ============================
           LẤY USER FORMAT ĐÚNG
     =============================== */
@@ -70,7 +167,16 @@
         <input id="phone" class="form-control mt-2" value="${user.phone || ""}" placeholder="Nhập số điện thoại" required>
         
         <label class="form-label mt-2">Địa chỉ giao hàng <span class="text-danger">*</span></label>
-        <input id="addr" class="form-control mt-2" placeholder="Nhập địa chỉ giao hàng" required>
+        <div style="position: relative;">
+            <input id="addr" class="form-control mt-2" placeholder="Nhập địa chỉ giao hàng hoặc chọn trên bản đồ" required>
+            <div id="deliveryAddressSuggestions" class="autocomplete-suggestions" style="display: none;"></div>
+        </div>
+
+        <label class="form-label mt-2">Vị trí giao hàng trên bản đồ <span class="text-danger">*</span></label>
+        <small class="text-muted d-block mb-2">Click trên bản đồ để chọn vị trí giao hàng</small>
+        <div id="deliveryMap" style="height: 300px; border-radius: 8px; margin-bottom: 10px;"></div>
+        <input type="hidden" id="deliveryLat">
+        <input type="hidden" id="deliveryLng">
 
         <label class="form-label mt-2">Phương thức thanh toán <span class="text-danger">*</span></label>
         <select id="paymentMethod" class="form-control mt-2" required>
@@ -83,6 +189,59 @@
     `;
 
         checkoutBox.innerHTML = html;
+        
+        // Initialize map after HTML is rendered
+        setTimeout(() => initDeliveryMap(), 100);
+    }
+
+    // Initialize map for delivery location
+    function initDeliveryMap() {
+        if (deliveryMap) return; // Already initialized
+        
+        deliveryMap = L.map('deliveryMap').setView([21.0285, 105.8542], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap'
+        }).addTo(deliveryMap);
+
+        // Address input autocomplete
+        const addressInput = document.getElementById('addr');
+        addressInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                searchAddress(this.value, 
+                    document.getElementById('deliveryAddressSuggestions'),
+                    'deliveryLat', 'deliveryLng', deliveryMap, 'deliveryMarker');
+            }, 500);
+        });
+
+        // Click to select location
+        deliveryMap.on('click', async function(e) {
+            const lat = e.latlng.lat;
+            const lng = e.latlng.lng;
+            
+            document.getElementById('deliveryLat').value = lat.toFixed(6);
+            document.getElementById('deliveryLng').value = lng.toFixed(6);
+            
+            // Get address from coordinates
+            await reverseGeocode(lat, lng, 'addr');
+            
+            // Remove old marker
+            if (deliveryMarker) {
+                deliveryMap.removeLayer(deliveryMarker);
+            }
+            
+            // Add new marker with coordinates in popup
+            deliveryMarker = L.marker([lat, lng]).addTo(deliveryMap)
+                .bindPopup(`<b>Địa chỉ giao hàng</b><br>Vĩ độ: ${lat.toFixed(6)}<br>Kinh độ: ${lng.toFixed(6)}`).openPopup();
+        });
+
+        // Hide suggestions when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('#addr')) {
+                document.getElementById('deliveryAddressSuggestions').style.display = 'none';
+            }
+        });
     }
 
     loadCheckout();
@@ -102,10 +261,17 @@
         let name = document.getElementById("name").value.trim();
         let phone = document.getElementById("phone").value.trim();
         let addr = document.getElementById("addr").value.trim();
+        let deliveryLat = parseFloat(document.getElementById("deliveryLat").value);
+        let deliveryLng = parseFloat(document.getElementById("deliveryLng").value);
 
         // Validation
         if(!name || !phone || !addr){
-            alert(" Vui lòng nhập đầy đủ thông tin giao hàng!");
+            alert("⚠️ Vui lòng nhập đầy đủ thông tin giao hàng!");
+            return;
+        }
+
+        if(!deliveryLat || !deliveryLng){
+            alert("⚠️ Vui lòng chọn vị trí giao hàng trên bản đồ!");
             return;
         }
 
@@ -117,6 +283,8 @@
             customerName: name,
             customerPhone: phone,
             customerAddress: addr,
+            deliveryLatitude: deliveryLat,
+            deliveryLongitude: deliveryLng,
 
             items: cart.map(i => ({
                 menuItemId: Number(i.id),

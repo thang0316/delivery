@@ -69,6 +69,8 @@ public class UserService {
             restaurant.setAddress(request.getRestaurantAddress() != null && !request.getRestaurantAddress().isEmpty()
                 ? request.getRestaurantAddress()
                 : "Chưa cập nhật");
+            restaurant.setLatitude(request.getRestaurantLatitude());
+            restaurant.setLongitude(request.getRestaurantLongitude());
             restaurant.setPhone(request.getPhone());
             restaurant.setOwner(savedUser);
             restaurant.setActive(true);

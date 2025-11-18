@@ -183,8 +183,6 @@
         const orders = await res.json();
 
         orderTable.innerHTML = orders.map(o => {
-            let disabled = o.status === "COMPLETED" ? "disabled" : "";
-
             return `
                 <tr>
                     <td>${o.id}</td>
@@ -193,12 +191,7 @@
                     <td>${o.totalAmount?.toLocaleString()} ₫</td>
 
                     <td>
-                        <select class="form-select form-select-sm"
-                                onchange="updateStatus(${o.id}, this)"
-                                data-old="${o.status}"
-                                ${disabled}>
-                            ${statusOptions(o.status)}
-                        </select>
+                        <span class="">${o.status}</span>
                     </td>
 
                     <td>
@@ -211,50 +204,6 @@
                     </td>
                 </tr>`;
         }).join("");
-    }
-
-    function statusOptions(current) {
-        const statuses = ["PENDING","CONFIRMED","PREPARING","DELIVERING","COMPLETED","CANCELLED"];
-        return statuses.map(s =>
-            `<option value="${s}" ${s===current?"selected":""}>${s}</option>`
-        ).join("");
-    }
-
-    /* ===========================
-       UPDATE STATUS — FIX FULL
-    =========================== */
-
-    async function updateStatus(orderId, selectEl) {
-        const oldStatus = selectEl.getAttribute("data-old");
-        const newStatus = selectEl.value;
-
-        if (oldStatus === newStatus) return;
-
-        if (!confirm(`Xác nhận đổi trạng thái:\n${oldStatus} → ${newStatus}?`)) {
-            selectEl.value = oldStatus;
-            return;
-        }
-
-        try {
-            const res = await fetch(`${API_BASE}/orders/${orderId}/status?status=${newStatus}`, {
-                method:"PUT",
-                headers:{"Content-Type":"application/json"}
-            });
-
-            if (!res.ok) {
-                throw new Error(`HTTP ${res.status}: ${await res.text()}`);
-            }
-
-            alert("✅ Cập nhật thành công!");
-            selectEl.setAttribute("data-old", newStatus);
-
-            if (newStatus === "COMPLETED") {
-                selectEl.setAttribute("disabled", true);
-            }
-        } catch (err) {
-            alert("❌ Lỗi: " + err.message);
-            selectEl.value = oldStatus;
-        }
     }
 
     /* ===========================
