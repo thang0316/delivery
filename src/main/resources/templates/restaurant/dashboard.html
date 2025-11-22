@@ -99,22 +99,24 @@
         const list = await orderRes.json();
         const myOrders = list.filter(o => o.restaurant.id === restaurantId);
 
+        let paidOrders = [];
         let totalRevenue = 0;
 
         for(let order of myOrders) {
 
             // ----- đếm trạng thái để vẽ biểu đồ -----
             if(order.status === "COMPLETED") completedCount++;
-            else if(order.status === "PENDING" || order.status === "CONFIRMED" || order.status === "DELIVERING") processingCount++;
-            else if(order.status === "CANCELED") cancelledCount++;
+            if(order.status === "PROCESSING") processingCount++;
+            if(order.status === "CANCELLED") cancelledCount++;
 
             // ----- load payment -----
             const paymentRes = await fetch(`/api/payments/order/${order.id}`);
             const payments = await paymentRes.json();
             const completedPayment = payments.find(p => p.status === 'COMPLETED');
 
-            // ----- chỉ tính doanh thu cho đơn đã thanh toán + hoàn thành -----
+            // ----- đơn đã thanh toán -----
             if(completedPayment && order.status === 'COMPLETED') {
+                paidOrders.push(order);
                 totalRevenue += order.totalAmount;
 
                 // gom doanh thu theo ngày
@@ -126,7 +128,7 @@
             }
         }
 
-        orderCount.innerText = myOrders.length; // ✅ Đếm TẤT CẢ đơn hàng
+        orderCount.innerText = paidOrders.length;
         revenue.innerText = totalRevenue.toLocaleString("vi-VN") + " ₫";
 
         drawCharts();

@@ -93,19 +93,25 @@
             .then(data => {
                 console.log("📦", data.length, "deliveries");
                 
-                let rows = data.map(d => `<tr>
-                    <td>${d.id}</td>
-                    <td>#${d.order?.id || "-"}</td>
-                    <td>${d.drone?.model || "-"}</td>
-                    <td><select class="form-select form-select-sm" onchange="changeStatus('${d.id}', this.value)">
-                        <option value="DELIVERING" ${d.status === 'DELIVERING' ? 'selected' : ''}>DELIVERING</option>
-                        <option value="COMPLETED" ${d.status === 'COMPLETED' ? 'selected' : ''}>COMPLETED</option>
-                        <option value="CANCELED" ${d.status === 'CANCELED' ? 'selected' : ''}>CANCELED</option>
-                    </select></td>
-                    <td>${d.startTime || "-"}</td>
-                    <td>${d.endTime || "-"}</td>
-                    <td><button class="btn btn-sm btn-danger" onclick="deleteDelivery('${d.id}')">Delete</button></td>
-                </tr>`).join("");
+                let rows = data.map(d => {
+                    // Không cho phép thay đổi trạng thái nếu đã COMPLETED hoặc CANCELED
+                    const isFinalized = d.status === 'COMPLETED' || d.status === 'CANCELED';
+                    const disabledAttr = isFinalized ? 'disabled' : '';
+                    
+                    return `<tr>
+                        <td>${d.id}</td>
+                        <td>#${d.order?.id || "-"}</td>
+                        <td>${d.drone?.model || "-"}</td>
+                        <td><select class="form-select form-select-sm" onchange="changeStatus('${d.id}', this.value)" ${disabledAttr}>
+                            <option value="DELIVERING" ${d.status === 'DELIVERING' ? 'selected' : ''}>DELIVERING</option>
+                            <option value="COMPLETED" ${d.status === 'COMPLETED' ? 'selected' : ''}>COMPLETED</option>
+                            <option value="CANCELED" ${d.status === 'CANCELED' ? 'selected' : ''}>CANCELED</option>
+                        </select></td>
+                        <td>${d.startTime || "-"}</td>
+                        <td>${d.endTime || "-"}</td>
+                        <td><button class="btn btn-sm btn-danger" onclick="deleteDelivery('${d.id}')">Delete</button></td>
+                    </tr>`;
+                }).join("");
                 document.getElementById("deliveryTable").innerHTML = rows || '<tr><td colspan="7" class="text-center">No deliveries</td></tr>';
             });
     }

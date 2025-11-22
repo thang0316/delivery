@@ -100,7 +100,7 @@
 </div>
 
 <script>
-    const API_BASE = "http://localhost:8080/api";
+    const API_BASE = window.apiBase || (window.location.origin + "/api");
     let users = [];
     let editingCell = null;
 

@@ -104,10 +104,48 @@ public class OrderService {
 
     /**
      * Cập nhật trạng thái đơn hàng
+     * Kiểm tra các điều kiện chuyển đổi trước khi cập nhật
      */
     public Order updateStatus(Long orderId, OrderStatus newStatus) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng cần cập nhật!"));
+        
+        OrderStatus currentStatus = order.getStatus();
+        
+        // Kiểm tra nếu đơn hàng đã hoàn thành hoặc đã hủy - không cho phép thay đổi
+        if (currentStatus == OrderStatus.COMPLETED || currentStatus == OrderStatus.CANCELED) {
+            throw new RuntimeException(
+                "Không thể cập nhật trạng thái! Đơn hàng đã " + 
+                (currentStatus == OrderStatus.COMPLETED ? "hoàn thành" : "bị hủy") + 
+                " và không thể thay đổi."
+            );
+        }
+        
+        // Kiểm tra các chuyển đổi hợp lệ
+        boolean isValidTransition = false;
+        switch (currentStatus) {
+            case PENDING:
+                // PENDING có thể chuyển sang CONFIRMED hoặc CANCELED
+                isValidTransition = (newStatus == OrderStatus.CONFIRMED || newStatus == OrderStatus.CANCELED);
+                break;
+            
+            case CONFIRMED:
+                // CONFIRMED chỉ có thể chuyển sang DELIVERING
+                isValidTransition = (newStatus == OrderStatus.DELIVERING);
+                break;
+            
+            case DELIVERING:
+                // DELIVERING có thể chuyển sang COMPLETED hoặc quay về CANCELED (nếu giao thất bại)
+                isValidTransition = (newStatus == OrderStatus.COMPLETED || newStatus == OrderStatus.CANCELED);
+                break;
+        }
+        
+        if (!isValidTransition) {
+            throw new RuntimeException(
+                "Không thể chuyển từ trạng thái " + currentStatus + 
+                " sang " + newStatus 
+            );
+        }
         
         order.setStatus(newStatus);
         return orderRepository.save(order);

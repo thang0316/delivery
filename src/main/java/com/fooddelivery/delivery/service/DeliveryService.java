@@ -23,6 +23,9 @@ public class DeliveryService {
 
     @Autowired
     private DroneService droneService;
+    
+    @Autowired
+    private OrderService orderService;
 
     // Tạo mới giao hàng
     public Delivery createDelivery(DeliveryRequest request) {
@@ -43,8 +46,7 @@ public class DeliveryService {
 
         // Tạo delivery → đồng bộ trạng thái order + drone
         delivery = deliveryRepository.save(delivery);
-        order.setStatus(Order.OrderStatus.DELIVERING);
-        orderRepository.save(order);
+        orderService.updateStatus(order.getId(), Order.OrderStatus.DELIVERING);
 
         // Cập nhật drone đang giao
         drone.setStatus(DroneStatus.DELIVERING);
@@ -88,8 +90,8 @@ public class DeliveryService {
         Delivery delivery = getDeliveryById(deliveryId);
 
         if (status == Delivery.DeliveryStatus.COMPLETED) {
-            delivery.markCompleted(); 
-            delivery.getOrder().setStatus(Order.OrderStatus.COMPLETED);
+            delivery.markCompleted();
+            orderService.updateStatus(delivery.getOrder().getId(), Order.OrderStatus.COMPLETED);
             // ⚠️ KHÔNG set AVAILABLE ngay - để animation callback xử lý sau khi bay về xong
             // delivery.getDrone().setStatus(Drone.DroneStatus.AVAILABLE);
             
@@ -98,7 +100,7 @@ public class DeliveryService {
             
         } else if (status == Delivery.DeliveryStatus.CANCELED) {
             delivery.markCanceled();
-            delivery.getOrder().setStatus(Order.OrderStatus.CANCELED);
+            orderService.updateStatus(delivery.getOrder().getId(), Order.OrderStatus.CANCELED);
             // ⚠️ KHÔNG set AVAILABLE ngay - để animation callback xử lý sau khi bay về xong
             // delivery.getDrone().setStatus(Drone.DroneStatus.AVAILABLE);
             
@@ -107,7 +109,7 @@ public class DeliveryService {
             
         } else if (status == Delivery.DeliveryStatus.DELIVERING) {
             delivery.setStatus(Delivery.DeliveryStatus.DELIVERING);
-            delivery.getOrder().setStatus(Order.OrderStatus.DELIVERING);
+            orderService.updateStatus(delivery.getOrder().getId(), Order.OrderStatus.DELIVERING);
             delivery.getDrone().setStatus(Drone.DroneStatus.DELIVERING); // Drone đang giao
             
             // ⭐ Drone bay đến khách hàng (giả lập - TỪ TỪ)

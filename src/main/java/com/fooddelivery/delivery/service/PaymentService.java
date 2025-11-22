@@ -135,9 +135,10 @@ public class PaymentService {
         vnp_Params.put("vnp_ReturnUrl", vnPayConfig.getVnpReturnUrl());
         vnp_Params.put("vnp_IpAddr", vnp_IpAddr);
         
-        // Thời gian tạo giao dịch
-        Calendar cld = Calendar.getInstance(TimeZone.getTimeZone("Etc/GMT+7"));
+        // Thời gian tạo giao dịch (sử dụng múi giờ Việt Nam)
+        Calendar cld = Calendar.getInstance(TimeZone.getTimeZone("Asia/Ho_Chi_Minh"));
         SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
+        formatter.setTimeZone(TimeZone.getTimeZone("Asia/Ho_Chi_Minh"));
         String vnp_CreateDate = formatter.format(cld.getTime());
         vnp_Params.put("vnp_CreateDate", vnp_CreateDate);
         

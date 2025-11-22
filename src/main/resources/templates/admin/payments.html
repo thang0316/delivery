@@ -2,38 +2,6 @@
 
     <h3 class="text-primary mb-3">💳 Quản lý Thanh toán</h3>
 
-    <div class="p-3 border bg-white rounded mb-4">
-        <h5 class="text-success mb-3">➕ Thêm Thanh toán</h5>
-
-        <div class="row g-2">
-            <div class="col-md-3">
-                <select id="orderSelectPayment" class="form-select">
-                    <option disabled selected>Đang tải đơn hàng...</option>
-                </select>
-            </div>
-
-            <div class="col-md-2">
-                <input id="method" class="form-control" placeholder="CASH / CARD" />
-            </div>
-
-            <div class="col-md-2">
-                <input id="amount" type="number" min="0" class="form-control" placeholder="Số tiền" />
-            </div>
-
-            <div class="col-md-2">
-                <select id="status" class="form-select">
-                    <option>PENDING</option>
-                    <option>SUCCESS</option>
-                    <option>FAILED</option>
-                </select>
-            </div>
-
-            <div class="col-md-3">
-                <button class="btn btn-primary w-100" onclick="createPayment()">Thêm</button>
-            </div>
-        </div>
-    </div>
-
     <table class="table table-striped align-middle">
         <thead class="table-primary">
         <tr>
@@ -56,27 +24,6 @@
 <script>
 
     var API_BASE = window.apiBase;
-
-    function loadOrders() {
-        var select = document.getElementById("orderSelectPayment");
-
-        fetch(API_BASE + "/orders")
-            .then(res => res.json())
-            .then(data => {
-                if (!data.length) {
-                    select.innerHTML = "<option disabled>Không có đơn hàng</option>";
-                    return;
-                }
-
-                select.innerHTML = data.map(o =>
-                    `<option value="${o.id}">#${o.id} - ${o.customer?.fullName || "NoName"} - ${o.status}</option>`
-                ).join("");
-            })
-            .catch(err => {
-                console.error(err);
-                select.innerHTML = "<option disabled>Lỗi tải đơn hàng</option>";
-            });
-    }
 
     function loadPayments() {
         var tbody = document.getElementById("payTable");
@@ -106,31 +53,11 @@
             });
     }
 
-    function createPayment() {
-        var data = {
-            orderId: document.getElementById("orderSelectPayment").value,
-            method: document.getElementById("method").value.trim(),
-            amount: Number(document.getElementById("amount").value),
-            status: document.getElementById("status").value
-        };
-
-        fetch(API_BASE + "/payments", {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify(data)
-        }).then(res => res.text())
-          .then(txt => {
-              loadPayments();
-              alert("Đã thêm thanh toán!");
-          });
-    }
-
     function deletePayment(id) {
         fetch(API_BASE + "/payments/" + id, {method: "DELETE"})
             .then(res => loadPayments());
     }
 
-    loadOrders();
     loadPayments();
 
 </script>

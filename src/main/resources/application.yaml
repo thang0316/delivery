@@ -2,28 +2,24 @@ server:
   port: 8080
 
 spring:
+  # Database Configuration
   datasource:
-    url: jdbc:mysql://localhost:3306/fooddelivery2?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Ho_Chi_Minh
+    url: jdbc:mysql://root:VCiFYFcJEwQTJxgBOdTDQGsaTaJUIgLp@switchyard.proxy.rlwy.net:27678/railway
     username: root
-    password: ""
-    driver-class-name: com.mysql.cj.jdbc.Driver
-
-  jpa:
-    hibernate:
+    password: VCiFYFcJEwQTJxgBOdTDQGsaTaJUIgLp
+  jpa: 
+    hibernate: 
       ddl-auto: update
     show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
-    database-platform: org.hibernate.dialect.MySQLDialect
+
+# VNPay configuration (fill with your credentials)
+vnpay:
+  vnp-tmn-code: ${VNPAY_TMN_CODE:5C9DFPOH}
+  vnp-hash-secret: ${VNPAY_HASH_SECRET:FEYZ5TCZKQQ700BB8ZXFAIGRACW09UH7}
+  vnp-url: "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html"
+  vnp-return-url: ${VNPAY_RETURN_URL:https://test-raqo.onrender.com/api/payments/vnpay/return}
 
   thymeleaf:
     prefix: classpath:/templates/
     suffix: .html
     cache: false
-# VNPay configuration (fill with your credentials)
-vnpay:
-  vnp-tmn-code: "5C9DFPOH"
-  vnp-hash-secret: "FEYZ5TCZKQQ700BB8ZXFAIGRACW09UH7"
-  vnp-url: "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html"
-  vnp-return-url: "http://localhost:8080/api/payments/vnpay/return"
