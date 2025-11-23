@@ -17,7 +17,7 @@ vnpay:
   vnp-tmn-code: ${VNPAY_TMN_CODE:5C9DFPOH}
   vnp-hash-secret: ${VNPAY_HASH_SECRET:FEYZ5TCZKQQ700BB8ZXFAIGRACW09UH7}
   vnp-url: "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html"
-  vnp-return-url: ${VNPAY_RETURN_URL:https://test-raqo.onrender.com/api/payments/vnpay/return}
+  vnp-return-url: ${VNPAY_RETURN_URL:https://delivery-jl1g.onrender.com/api/payments/vnpay/return}
 
   thymeleaf:
     prefix: classpath:/templates/
