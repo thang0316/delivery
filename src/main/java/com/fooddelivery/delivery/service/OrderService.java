@@ -34,7 +34,13 @@ public class OrderService {
     private PaymentRepository paymentRepository;
 
     @Autowired
-    private com.fooddelivery.delivery.repository.ReviewRepository reviewRepository; //  Tạo đơn hàng
+    private com.fooddelivery.delivery.repository.ReviewRepository reviewRepository;
+    
+    @Autowired
+    private DeliveryRepository deliveryRepository;
+    
+    @Autowired
+    private DroneRepository droneRepository; //  Tạo đơn hàng
     	public Order createOrder(OrderRequest request) {
         User customer = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng!"));
@@ -148,7 +154,61 @@ public class OrderService {
         }
         
         order.setStatus(newStatus);
-        return orderRepository.save(order);
+        Order savedOrder = orderRepository.save(order);
+        
+        // Đồng bộ trạng thái Delivery và Drone
+        syncDeliveryAndDrone(orderId, newStatus);
+        
+        return savedOrder;
+    }
+    
+    /**
+     * Đồng bộ trạng thái Delivery và Drone khi Order thay đổi
+     */
+    private void syncDeliveryAndDrone(Long orderId, OrderStatus newStatus) {
+        try {
+            // Tìm delivery của order này
+            var deliveryOpt = deliveryRepository.findByOrder_Id(orderId);
+            
+            if (deliveryOpt.isPresent()) {
+                var delivery = deliveryOpt.get();
+                var drone = delivery.getDrone();
+                
+                // Đồng bộ theo trạng thái mới của order
+                switch (newStatus) {
+                    case COMPLETED:
+                        // Khách hàng xác nhận đã nhận hàng
+                        delivery.markCompleted();
+                        deliveryRepository.save(delivery);
+                        
+                        // Giải phóng drone
+                        if (drone != null) {
+                            drone.setStatus(com.fooddelivery.delivery.entity.Drone.DroneStatus.AVAILABLE);
+                            droneRepository.save(drone);
+                        }
+                        break;
+                        
+                    case CANCELED:
+                        // Đơn hàng bị hủy
+                        delivery.markCanceled();
+                        deliveryRepository.save(delivery);
+                        
+                        // Giải phóng drone
+                        if (drone != null) {
+                            drone.setStatus(com.fooddelivery.delivery.entity.Drone.DroneStatus.AVAILABLE);
+                            droneRepository.save(drone);
+                        }
+                        break;
+                        
+                    default:
+                        // Không cần đồng bộ cho các trạng thái khác
+                        break;
+                }
+            }
+        } catch (Exception e) {
+            // Log lỗi nhưng không throw để không ảnh hưởng đến việc cập nhật order
+            System.err.println("Lỗi đồng bộ delivery/drone: " + e.getMessage());
+        }
     }
 
     //  Xóa đơn
