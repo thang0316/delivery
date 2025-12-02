@@ -184,13 +184,13 @@
             let trackingBtn = order.status === 'DELIVERING' ? `<button class="btn btn-info btn-sm" onclick="openTracking(${orderId})">📍 Theo dõi giao hàng</button>` : '';
             
             // Nút xác nhận đã nhận hàng - chỉ hiển thị khi đơn đang DELIVERING
-            let confirmReceiveBtn = order.status === 'DELIVERING' ? `<button class="btn btn-success btn-sm" onclick="confirmReceiveOrder(${orderId})">✓ Xác nhận đã nhận hàng</button>` : '';
+            let confirmReceiveBtn = order.status === 'DELIVERING' ? `<button class="btn btn-success btn-sm" onclick="confirmReceiveOrder(${orderId})">Xác nhận đã nhận hàng</button>` : '';
             
             if(!completedPayment){
                 // Chưa thanh toán: hiển thị nút Thanh toán
                 actionBtnHtml = `
                     <div class="mt-3">
-                        <button class="btn btn-success" onclick="payOrder(${orderId})">💳 Thanh toán</button>
+                        <button class="btn btn-success" onclick="payOrder(${orderId})">Thanh toán</button>
                         ${trackingBtn}
                         ${confirmReceiveBtn}
                     </div>`;
@@ -224,7 +224,7 @@
                     <div class="d-flex gap-2 mt-2">
                         ${trackingBtn}
                         ${confirmReceiveBtn}
-                        ${order.status === 'COMPLETED' ? `<button id="reviewBtn_${orderId}" class="btn btn-warning btn-sm" onclick="openFeedbackForm(${orderId})">⭐ Đánh giá</button>` : `<p class="text-muted">Chỉ có thể đánh giá khi đơn hàng hoàn thành</p>`}
+                        ${order.status === 'COMPLETED' ? `<button id="reviewBtn_${orderId}" class="btn btn-warning btn-sm" onclick="openFeedbackForm(${orderId})">Đánh giá</button>` : `<p class="text-muted">Chỉ có thể đánh giá khi đơn hàng hoàn thành</p>`}
                     </div>
                 `;
                 
@@ -538,11 +538,36 @@
          XÁC NHẬN ĐÃ NHẬN HÀNG
     =============================== */
     async function confirmReceiveOrder(orderId){
-        if(!confirm('Bạn xác nhận đã nhận được hàng?')){
-            return;
-        }
-        
         try {
+            // Lấy thông tin delivery để lấy drone ID
+            const delRes = await fetch(`/api/deliveries/order/${orderId}`);
+            if(!delRes.ok) {
+                alert("Không thể lấy thông tin giao hàng!");
+                return;
+            }
+            const delivery = await delRes.json();
+            
+            if(!delivery.drone?.id){
+                alert("Không tìm thấy thông tin drone!");
+                return;
+            }
+            
+            const droneId = delivery.drone.id;
+            const last3Chars = droneId.slice(-3);
+            
+            // Yêu cầu nhập mã xác nhận (3 ký tự cuối của drone ID)
+            const userInput = prompt(`Để xác nhận đã nhận hàng, vui lòng nhập 3 ký tự cuối của mã drone:\n(Mã drone: ${droneId})`);
+            
+            if(!userInput){
+                return; // Người dùng hủy
+            }
+            
+            if(userInput.trim().toLowerCase() !== last3Chars.toLowerCase()){
+                alert("❌ Mã xác nhận không đúng! Vui lòng nhập chính xác 3 ký tự cuối của mã drone.");
+                return;
+            }
+            
+            // Mã đúng, tiến hành xác nhận
             const r = await fetch(`/api/orders/${orderId}/status?status=COMPLETED`, {
                 method: 'PUT',
                 headers: {'Content-Type': 'application/json'}
@@ -554,7 +579,7 @@
                 return;
             }
             
-            alert("✓ Cảm ơn bạn! Đơn hàng đã hoàn thành.");
+            alert("✅ Đơn hàng đã hoàn thành.");
             closeModal();
             loadOrders();
         } catch(e){
