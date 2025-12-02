@@ -2,6 +2,7 @@ package com.fooddelivery.delivery.entity;
 
 import jakarta.persistence.*;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "drones")
@@ -30,6 +31,8 @@ public class Drone {
 
     private double currentLatitude;    // Vĩ độ hiện tại của drone
     private double currentLongitude;   // Kinh độ hiện tại của drone
+
+    private LocalDateTime createdAt = LocalDateTime.now();
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "restaurant_id", nullable = false)
@@ -91,5 +94,13 @@ public class Drone {
 
     public void setCurrentLongitude(double currentLongitude) {
         this.currentLongitude = currentLongitude;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 }
