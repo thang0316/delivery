@@ -332,6 +332,8 @@
     =============================== */
     var trackingMap = null;
     var trackingMarker = null;
+    var trackingInterval = null;
+    var lastProgress = 0;
 
     async function openTracking(orderId){
         try {
@@ -349,21 +351,7 @@
             }
 
             // Hiển thị info
-            let infoHtml = `
-                <div class="row">
-                    <div class="col-md-6">
-                        <p><strong>Drone:</strong> ${delivery.drone?.model || "Không rõ"}</p>
-                        <p><strong>Trạng thái:</strong> <span class="badge bg-primary">${delivery.status}</span></p>
-                    </div>
-                    <div class="col-md-6">
-                        <p><strong>Vĩ độ:</strong> ${delivery.drone.currentLatitude.toFixed(6)}</p>
-                        <p><strong>Kinh độ:</strong> ${delivery.drone.currentLongitude.toFixed(6)}</p>
-                    </div>
-                </div>
-                ${delivery.startTime ? `<p><strong>Bắt đầu:</strong> ${new Date(delivery.startTime).toLocaleString("vi-VN")}</p>` : ''}
-                ${delivery.endTime ? `<p><strong>Kết thúc:</strong> ${new Date(delivery.endTime).toLocaleString("vi-VN")}</p>` : ''}
-            `;
-            document.getElementById('trackingInfo').innerHTML = infoHtml;
+            updateTrackingInfo(delivery);
 
             // Init map
             if(!trackingMap){
@@ -380,14 +368,7 @@
             }
 
             // Add marker
-            if(trackingMarker) trackingMap.removeLayer(trackingMarker);
-            trackingMarker = L.marker([delivery.drone.currentLatitude, delivery.drone.currentLongitude], {
-                icon: L.icon({
-                    iconUrl: 'https://cdn-icons-png.flaticon.com/512/3597/3597911.png',
-                    iconSize: [40, 40],
-                    popupAnchor: [0, -20]
-                })
-            }).bindPopup(`<strong>${delivery.drone?.model || "Drone"}</strong><br>Vị trí hiện tại`).addTo(trackingMap);
+            updateTrackingMarker(delivery);
 
             // Mở modal
             document.getElementById('trackingModal').style.display = 'block';
@@ -404,12 +385,150 @@
             // Refresh map size
             setTimeout(() => { if(trackingMap) trackingMap.invalidateSize(); }, 200);
 
+            // Bắt đầu tracking thời gian thực
+            startRealtimeTracking(orderId, delivery);
+
         } catch(e){
             alert("Lỗi: " + e.message);
         }
     }
 
+    function updateTrackingInfo(delivery) {
+        let infoHtml = `
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Drone:</strong> ${delivery.drone?.model || "Không rõ"}</p>
+                    <p><strong>Trạng thái:</strong> <span class="badge bg-primary">${delivery.status}</span></p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Vĩ độ:</strong> ${delivery.drone.currentLatitude.toFixed(6)}</p>
+                    <p><strong>Kinh độ:</strong> ${delivery.drone.currentLongitude.toFixed(6)}</p>
+                </div>
+            </div>
+            <div id="progressNotification" class="alert alert-info mt-2" style="display: none;"></div>
+            ${delivery.startTime ? `<p><strong>Bắt đầu:</strong> ${new Date(delivery.startTime).toLocaleString("vi-VN")}</p>` : ''}
+            ${delivery.endTime ? `<p><strong>Kết thúc:</strong> ${new Date(delivery.endTime).toLocaleString("vi-VN")}</p>` : ''}
+        `;
+        document.getElementById('trackingInfo').innerHTML = infoHtml;
+    }
+
+    function updateTrackingMarker(delivery) {
+        if(trackingMarker) trackingMap.removeLayer(trackingMarker);
+        trackingMarker = L.marker([delivery.drone.currentLatitude, delivery.drone.currentLongitude], {
+            icon: L.icon({
+                iconUrl: 'https://cdn-icons-png.flaticon.com/512/3597/3597911.png',
+                iconSize: [40, 40],
+                popupAnchor: [0, -20]
+            })
+        }).bindPopup(`<strong>${delivery.drone?.model || "Drone"}</strong><br>Vị trí hiện tại`).addTo(trackingMap);
+    }
+
+    async function startRealtimeTracking(orderId, initialDelivery) {
+        // Clear interval cũ nếu có
+        if(trackingInterval) clearInterval(trackingInterval);
+        
+        // Lấy thông tin đơn hàng để biết điểm đến
+        const orderRes = await fetch(`/api/orders/${orderId}`);
+        const order = await orderRes.json();
+        
+        const destLat = order.deliveryLatitude;
+        const destLng = order.deliveryLongitude;
+        
+        // Lấy vị trí nhà hàng (điểm bắt đầu)
+        const startLat = initialDelivery.drone.restaurant.latitude;
+        const startLng = initialDelivery.drone.restaurant.longitude;
+        
+        lastProgress = 0;
+        
+        // Cập nhật mỗi 2 giây
+        trackingInterval = setInterval(async () => {
+            try {
+                const delRes = await fetch(`/api/deliveries/order/${orderId}`);
+                if(!delRes.ok) return;
+                
+                const delivery = await delRes.json();
+                
+                // Tính toán tiến trình dựa trên khoảng cách
+                const currentLat = delivery.drone.currentLatitude;
+                const currentLng = delivery.drone.currentLongitude;
+                
+                // Tính khoảng cách từ điểm bắt đầu đến điểm hiện tại
+                const totalDistance = calculateDistance(startLat, startLng, destLat, destLng);
+                const currentDistance = calculateDistance(startLat, startLng, currentLat, currentLng);
+                const progress = (currentDistance / totalDistance) * 100;
+                
+                // Cập nhật marker và info
+                updateTrackingMarker(delivery);
+                updateTrackingInfo(delivery);
+                trackingMap.setView([currentLat, currentLng], 15);
+                
+                // Thông báo khi đạt 33% và 66%
+                const progressDiv = document.getElementById('progressNotification');
+                if(progress >= 33 && lastProgress < 33) {
+                    progressDiv.style.display = 'block';
+                    progressDiv.innerHTML = '🚁 Drone đã bay được 1/3 quãng đường!';
+                    showNotification('Drone đã bay được 1/3 quãng đường!');
+                } else if(progress >= 66 && lastProgress < 66) {
+                    progressDiv.style.display = 'block';
+                    progressDiv.innerHTML = '🚁 Drone đã bay được 2/3 quãng đường!';
+                    showNotification('Drone đã bay được 2/3 quãng đường!');
+                }
+                
+                lastProgress = progress;
+                
+                // Dừng tracking khi hoàn thành
+                if(delivery.status === 'COMPLETED') {
+                    clearInterval(trackingInterval);
+                    progressDiv.style.display = 'block';
+                    progressDiv.className = 'alert alert-success mt-2';
+                    progressDiv.innerHTML = '✅ Đơn hàng đã được giao!';
+                }
+            } catch(e) {
+                console.error('Tracking error:', e);
+            }
+        }, 2000);
+    }
+
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371; // Bán kính trái đất (km)
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                  Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                  Math.sin(dLon/2) * Math.sin(dLon/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return R * c;
+    }
+
+    function showNotification(message) {
+        // Hiển thị notification native nếu được phép
+        if ("Notification" in window && Notification.permission === "granted") {
+            new Notification("Cập nhật giao hàng", {
+                body: message,
+                icon: 'https://cdn-icons-png.flaticon.com/512/3597/3597911.png'
+            });
+        } else if ("Notification" in window && Notification.permission !== "denied") {
+            Notification.requestPermission().then(permission => {
+                if (permission === "granted") {
+                    new Notification("Cập nhật giao hàng", {
+                        body: message,
+                        icon: 'https://cdn-icons-png.flaticon.com/512/3597/3597911.png'
+                    });
+                }
+            });
+        }
+        
+        // Hiển thị alert backup
+        console.log("📢 " + message);
+    }
+
     function closeTrackingModal(){
+        // Dừng tracking
+        if(trackingInterval) {
+            clearInterval(trackingInterval);
+            trackingInterval = null;
+        }
+        
         document.getElementById('trackingModal').style.display = 'none';
         document.getElementById('trackingModal').classList.remove('show');
         document.body.classList.remove('modal-open');
